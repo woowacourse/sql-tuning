@@ -131,7 +131,30 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
       - 실행 결과
         <img width="1377" alt="스크린샷 2021-10-11 오전 1 40 23" src="https://user-images.githubusercontent.com/53412998/136705397-62a8a983-d6fc-435f-b1d0-31d5fa66bd2c.png">
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    
+      - 쿼리
+        ```sql
+        select covid.stay, count(india_programmer.id) as india_programmers 
+        from (select id, programmer_id, hospital_id, member_id, stay from subway.covid where programmer_id is not null) as covid
+        inner join (select id, member_id from subway.programmer where country = 'India') as india_programmer 
+        on covid.programmer_id = india_programmer.id 
+        inner join (select id from subway.member where age between 20 and 29) as twenties_member
+        on covid.member_id = twenties_member.id
+        inner join (select id from subway.hospital where name = '서울대병원') as hospital
+        on covid.hospital_id = hospital.id
+        group by covid.stay;
+        ```
+        
+       - hospital 테이블
+         - `name` 컬럼 데이터 타입 `TEXT`에서 `VARCHAR(255)`로 변경
+         - `name` 컬럼 `UNIQUE` `INDEX` 설정
+
+       - covid 테이블
+         - `(hospital_id, member_id, programmer_id, stay)` `INDEX` 생성
+     
+       - 실행 결과
+         <img width="1236" alt="스크린샷 2021-10-11 오전 2 00 26" src="https://user-images.githubusercontent.com/53412998/136705889-1842261b-e847-48cb-9ba3-39778d1d5172.png">
 
     - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 

@@ -50,7 +50,7 @@ order by `상위_연봉_부서관리자`.연봉 desc;
 
 - [x] 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
 
-`사원출입기록` 테이블의 `사원번호` 컬럼에 인덱스를 설정해 조회 시간을 `0.0025sec(2.5ms)`까지 줄여봤습니다.
+`사원출입기록` 테이블의 `사원번호` 컬럼에 `INDEX`를 설정해 조회 시간을 `0.0025sec(2.5ms)`까지 줄여봤습니다.
 
 <img width="1281" alt="스크린샷 2021-10-10 오후 11 18 32" src="https://user-images.githubusercontent.com/53412998/136699590-67338ed9-3c5e-4c6a-8345-bfc1526cad94.png">
 
@@ -83,13 +83,31 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         
       - `programmer` 테이블
         - `id` 컬럼에 `PK`, `UNIQUE` 설정
-        - `hobby` 컬럼에 `Index` 설정
+        - `hobby` 컬럼에 `INDEX` 설정
         
       - 실행 결과
         <img width="1329" alt="스크린샷 2021-10-10 오후 11 29 49" src="https://user-images.githubusercontent.com/53412998/136700164-1ca9a123-61fb-449f-9879-833c161a5dfb.png">
 
       
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+      
+      - 쿼리
+        ```sql
+        select covid.programmer_id, hospital.name as hospital_name
+        from (select programmer_id, hospital_id from subway.covid where programmer_id is not null) as covid 
+        inner join (select id, name from subway.hospital) as hospital
+        on covid.hospital_id = hospital.id;
+        ```
+        
+     - `hospital` 테이블
+       - `id` 컬럼에 `PK`, `UNIQUE` 설정
+     
+     - `covid` 테이블
+       - `(programmer_id, hospital_id)` `INDEX` 설정
+
+     - 실행 결과
+       <img width="1235" alt="스크린샷 2021-10-11 오전 12 37 08" src="https://user-images.githubusercontent.com/53412998/136702850-33cd1f2f-add3-486c-9732-a43e3aff352d.png">
+
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 

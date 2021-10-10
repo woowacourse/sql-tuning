@@ -93,24 +93,43 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
       
       - 쿼리
         ```sql
-        select covid.id, hospital.name as hospital_name
+        select covid.programmer_id, hospital.name as hospital_name
         from (select id, programmer_id, hospital_id from subway.covid where programmer_id is not null) as covid 
         inner join (select id, name from subway.hospital) as hospital
-        on covid.hospital_id = hospital.id;
+        on covid.hospital_id = hospital.id
+        limit 0,100;
         ```
         
-     - `hospital` 테이블
-       - `id` 컬럼에 `PK`, `UNIQUE` 설정
+      - `hospital` 테이블
+        - `id` 컬럼에 `PK`, `UNIQUE` 설정
      
-     - `covid` 테이블
-       - `id` 컬럼에 `PK`, `UNIQUE` 설정
-       - `(programmer_id, hospital_id)` `INDEX` 설정
+      - `covid` 테이블
+        - `id` 컬럼에 `PK`, `UNIQUE` 설정
+        - `(programmer_id, hospital_id)` `INDEX` 설정
 
-     - 실행 결과
-       <img width="1213" alt="스크린샷 2021-10-11 오전 1 11 56" src="https://user-images.githubusercontent.com/53412998/136704167-ab823692-e998-477b-af6d-686e1abcff09.png">
+      - 실행 결과
+        <img width="1236" alt="스크린샷 2021-10-11 오전 1 33 24" src="https://user-images.githubusercontent.com/53412998/136704973-b658a575-133c-4759-bb84-68f1767919c1.png">
 
-
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    - [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+      - 쿼리
+        ```sql
+        select programmer.id as programmer_id, hospital.name as hospital_name
+        from (select programmer_id, hospital_id from subway.covid where programmer_id is not null) as covid 
+        inner join (select id, hobby, dev_type, years_coding from subway.programmer where (hobby = 'Yes' and dev_type = 'Student') or years_coding = '0-2 years') as programmer 
+        on programmer.id = covid.programmer_id 
+        inner join (select id, name from subway.hospital) as hospital
+        on covid.hospital_id = hospital.id
+        limit 0,100;
+        ```
+    
+      - `programmer` 테이블
+        - `dev_type` 컬럼 `TEXT` 타입에서 `VARCHAR(500)`으로 변경
+        - `hobby` 컬럼 `INDEX` 삭제
+        - `(hobby, dev_type)` `INDEX` 설정
+        - `years_coding` 컬럼 `INDEX` 설정
+      
+      - 실행 결과
+        <img width="1377" alt="스크린샷 2021-10-11 오전 1 40 23" src="https://user-images.githubusercontent.com/53412998/136705397-62a8a983-d6fc-435f-b1d0-31d5fa66bd2c.png">
 
     - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 

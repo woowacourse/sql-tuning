@@ -69,7 +69,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 ### * 요구사항
 
-- [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+- [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
     - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
     
@@ -156,7 +156,24 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
        - 실행 결과
          <img width="1236" alt="스크린샷 2021-10-11 오전 2 00 26" src="https://user-images.githubusercontent.com/53412998/136705889-1842261b-e847-48cb-9ba3-39778d1d5172.png">
 
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+    - [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+      
+      - 쿼리
+        ```sql
+        select programmer.exercise, count(programmer.id) 
+        from (select id, age from subway.member where age between 30 and 39) as thirties_member
+        inner join (select programmer_id, member_id, hospital_id from covid) as covid
+        on covid.member_id = thirties_member.id
+        inner join (select id, exercise from subway.programmer) as programmer
+        on covid.programmer_id = programmer.id
+        inner join (select id from subway.hospital where name = '서울대병원') as SNU_hospital
+        on SNU_hospital.id = covid.hospital_id
+        group by programmer.exercise;
+        ```
+
+      - 실행 결과
+        <img width="1229" alt="스크린샷 2021-10-11 오전 2 04 26" src="https://user-images.githubusercontent.com/53412998/136705996-d8eb2b1e-bb4e-4ac1-91a5-9d9ec56b4347.png">
+
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

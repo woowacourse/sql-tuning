@@ -10,3 +10,6 @@ join 사원출입기록 on 사원출입기록.사원번호=상위사원.사원�
 where 입출입구분='O'
 order by 상위사원.연봉 desc;
 
+-- 2번 인덱스 추가를 통한 성능 향상
+CREATE INDEX idx_직급명 on 직급 (직급명);
+CREATE INDEX idx_사원번호 on 사원출입기록 (사원번호);

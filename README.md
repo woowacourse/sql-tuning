@@ -21,8 +21,38 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 
 <img width="427" alt="aacb272f851f4d66b944bb08f77bdc9b" src="https://user-images.githubusercontent.com/53412998/136698994-96692452-d592-4e61-8f09-2865fa96f2ee.png">
 
-- [ ] 쿼리 작성만으로 1s 이하로 반환한다.
-- [ ] 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
+### 쿼리
+```sql
+select `상위_연봉_부서관리자`.사원번호, `상위_연봉_부서관리자`.이름, `상위_연봉_부서관리자`.연봉, `상위_연봉_부서관리자`.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분 
+from (select 사원.사원번호, 사원.이름, `재직자의_연봉`.연봉, 직급.직급명 
+from (select 사원번호, 직급명 from tuning.직급 where date(종료일자) = '9999-01-01') as 직급 
+inner join (select 사원번호, 이름 from tuning.사원) as 사원
+on 직급.사원번호 = 사원.사원번호 
+inner join (select 사원번호, 연봉 from tuning.급여 where date(종료일자) = '9999-01-01') as `재직자의_연봉` 
+on 사원.사원번호 = `재직자의_연봉`.사원번호 
+inner join (select 사원번호, 부서번호 from tuning.부서관리자 where date(종료일자) = '9999-01-01') as `재직중인_부서관리자` 
+on `재직자의_연봉`.사원번호 = `재직중인_부서관리자`.사원번호 
+inner join (select 부서번호 from tuning.부서 where 비고 = 'Active') as `활동중인_부서` 
+on `재직중인_부서관리자`.부서번호 = `활동중인_부서`.부서번호
+order by `재직자의_연봉`.연봉 desc
+limit 0,5) as `상위_연봉_부서관리자` 
+left join (select 사원번호, 입출입구분, 입출입시간, 지역 from tuning.사원출입기록 where 입출입구분 = 'O') as 사원출입기록 
+on `상위_연봉_부서관리자`.사원번호 = 사원출입기록.사원번호
+order by `상위_연봉_부서관리자`.연봉 desc;
+```
+
+<div style="line-height:1em"><br style="clear:both" ></div>
+
+- [x] 쿼리 작성만으로 1s 이하로 반환한다.
+<img width="1286" alt="스크린샷 2021-10-10 오후 11 14 25" src="https://user-images.githubusercontent.com/53412998/136699457-8897bee7-835a-45ef-b68e-40d899a51964.png">
+
+<div style="line-height:1em"><br style="clear:both" ></div>
+
+- [x] 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
+
+`사원출입기록` 테이블의 `사원번호` 컬럼에 인덱스를 설정해 조회 시간을 `0.0025sec(2.5ms)`까지 줄여봤습니다.
+
+<img width="1281" alt="스크린샷 2021-10-10 오후 11 18 32" src="https://user-images.githubusercontent.com/53412998/136699590-67338ed9-3c5e-4c6a-8345-bfc1526cad94.png">
 
 <br/>
 

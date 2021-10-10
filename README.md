@@ -93,8 +93,8 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
       
       - 쿼리
         ```sql
-        select covid.programmer_id, hospital.name as hospital_name
-        from (select programmer_id, hospital_id from subway.covid where programmer_id is not null) as covid 
+        select covid.id, hospital.name as hospital_name
+        from (select id, programmer_id, hospital_id from subway.covid where programmer_id is not null) as covid 
         inner join (select id, name from subway.hospital) as hospital
         on covid.hospital_id = hospital.id;
         ```
@@ -103,10 +103,11 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
        - `id` 컬럼에 `PK`, `UNIQUE` 설정
      
      - `covid` 테이블
+       - `id` 컬럼에 `PK`, `UNIQUE` 설정
        - `(programmer_id, hospital_id)` `INDEX` 설정
 
      - 실행 결과
-       <img width="1235" alt="스크린샷 2021-10-11 오전 12 37 08" src="https://user-images.githubusercontent.com/53412998/136702850-33cd1f2f-add3-486c-9732-a43e3aff352d.png">
+       <img width="1213" alt="스크린샷 2021-10-11 오전 1 11 56" src="https://user-images.githubusercontent.com/53412998/136704167-ab823692-e998-477b-af6d-686e1abcff09.png">
 
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)

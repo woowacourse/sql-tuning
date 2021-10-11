@@ -55,3 +55,6 @@ order by
 4. 시간이 많이 줄었어요
     - 대략 0.000sec ~ 0.015sec 정도로 계산되어요
     - ![](./image/a-2-second-time.PNG)
+5. 실행계획에서도 사원출입기록에서 조회해오는 Row가 2개로 감소한 것을 확인할 수 있어요. 
+    - ![](./image/a-2-second-execution-plan.PNG)
+    - ![](./image/a-2-second-execution-plan-graph.PNG)

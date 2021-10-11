@@ -105,7 +105,7 @@ programmer -> hobby
 #### 쿼리
 
 ```sql
-select covid.id as covid_id, name as hospital_name, programmer_id 
+select name as hospital_name, programmer_id 
 from hospital
 join covid
 on hospital.id = hospital_id 
@@ -157,7 +157,7 @@ or years_coding = '0-2 years')
 
 hospital -> id(pk)
 
-covid -> programmer_id
+covid -> (programmer_id, hospital_id) 
 
 #### 비용
 
@@ -242,7 +242,7 @@ order by null
 
 hostpital -> name(unique)
 
-covid -> hospital_id
+covid -> hospital_id, programmer_id
 
 #### 비용
 
@@ -255,3 +255,4 @@ covid -> hospital_id
 #### 출력결과
 
 ![](./images/b5_query_result.PNG)
+

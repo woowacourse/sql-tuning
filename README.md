@@ -14,6 +14,8 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 > 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
 (사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
 
+1. 쿼리 작성만으로 1s 이하로 반환한다.
+2. 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

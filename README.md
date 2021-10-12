@@ -169,7 +169,7 @@
     
   - 원인분석
     - 쿼리최적화가 덜 진행된 탓이라 생각했다.
-    - Apple M1칩 + Docker + MySQL 이슈가 있었으나 [링크](https://dev.to/perry/fix-slow-docker-databases-for-apple-silicon-m1-chips-2ip1) 이 땐 몰랐다.
+    - Apple M1칩 + Docker + MySQL 이슈가 있었으나 이 땐 몰랐다. [링크](https://dev.to/perry/fix-slow-docker-databases-for-apple-silicon-m1-chips-2ip1)
 
   - 적용
     1. group by, having을 제거했다.

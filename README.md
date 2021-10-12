@@ -79,7 +79,8 @@ create index hopital_idx on hospital(id);
 create index prgrammer_idx on covid(programmer_id, hospital_id);
 ```
 ```sql
-select c.programmer_id 프로그래머_아이디, h.name 병원이름 from hospital h join covid c on h.id = c.hospital_id order by c.programmer_id desc;
+select c.programmer_id 프로그래머_아이디, h.name 병원이름 from hospital h 
+join covid c on h.id = c.hospital_id order by c.programmer_id desc;
 
 ```
 ![image](https://user-images.githubusercontent.com/63634505/136956636-0d6f141d-d738-42f8-b211-4c8501c4a5c5.png)
@@ -96,7 +97,8 @@ create index hobby_years on programmer(hobby, years_coding);
 
 ```sql
 select a.id, b.name, a.hobby, a.dev_type, a.years_coding from 
-    (select p.id, p.hobby, p.dev_type, p.years_coding from programmer p where hobby = 'yes' or years_coding = '0-2 years' order by id) a 
+    (select p.id, p.hobby, p.dev_type, p.years_coding from programmer p 
+    where hobby = 'yes' or years_coding = '0-2 years' order by id) a 
 join (select c.id, h.name from covid c, hospital h where c.hospital_id = h.id) b 
 on a.id = b.id;
 ```

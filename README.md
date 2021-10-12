@@ -311,7 +311,7 @@
     10 '4', 'DERIVED', '부서', NULL, 'ALL', 'PRIMARY', NULL, NULL, NULL, '9', '11.11', 'Using where; Using temporary; Using filesort'
     11 '4', 'DERIVED', '부서관리자', NULL, 'ref', 'PRIMARY,I_부서번호', 'I_부서번호', '12', 'tuning.부서.부서번호', '2', '10.00', 'Using where'
     ```
-    - 11행 사원출입기록 행이 사원번호 인덱스를 활용하는 것을 볼 수 있다.
+    - 9행 사원출입기록 행이 사원번호 인덱스를 활용하는 것을 볼 수 있다.
   
 ## B. 인덱스 설계
 

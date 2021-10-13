@@ -2,22 +2,31 @@
 
 ## A. 쿼리 연습
 
-### * 실습환경 세팅
+### 실습환경 세팅
 
 ```sh
 $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 ```
-- [workbench](https://www.mysql.com/products/workbench/)를 설치한 후 localhost:23306 (ID : user, PW : password) 로 접속합니다.
 
-<div style="line-height:1em"><br style="clear:both" ></div>
+- [workbench](https://www.mysql.com/products/workbench/)에서 localhost:23306 (ID: user, PW: password)로 접속한다.
 
-> 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
-(사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
+<br/>
 
+> 활동 중인(Active) 부서의 현재 부서 관리자 중 연봉 상위 5위 안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회한다.
+> - 사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간
+> - 급여 테이블의 사용여부 필드는 사용하지 X
+> - 현재 근무 중인지 여부는 종료일자 필드로 판단한다.
 
-<div style="line-height:1em"><br style="clear:both" ></div>
-<div style="line-height:1em"><br style="clear:both" ></div>
+<br/>
 
+- [ ] 쿼리 작성만으로 1s 이하로 반환한다.
+- [ ] 인덱스 설정을 추가하여 50ms 이하로 반환한다.
+
+<br/>
+
+![query_result](https://user-images.githubusercontent.com/50176238/137148711-9850c6e5-a0c9-417d-8f22-b26d35a992fc.png)
+
+<br/>
 
 ## B. 인덱스 설계
 

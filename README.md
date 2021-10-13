@@ -90,7 +90,7 @@ CREATE INDEX `idx_사원출입기록_사원번호` on `tuning`.`사원출입기�
 
 ### Coding as a Hobby 와 같은 결과를 반환하세요.
 
-#### 쿼리
+#### 쿼리 & 결과
 ```sql
 SELECT
     hobby, 
@@ -101,17 +101,16 @@ JOIN
     (SELECT COUNT(*) AS count FROM programmer) AS total
 GROUP BY hobby, count;
 ```
-#### 실행결과(before)
-
 <img width="105" alt="스크린샷 2021-10-13 오후 10 47 14" src="https://user-images.githubusercontent.com/45876793/137145681-f41e2f14-3fc7-4e21-aad0-0a188ad95d6a.png">
 
-<img width="983" alt="스크린샷 2021-10-13 오후 10 47 38" src="https://user-images.githubusercontent.com/45876793/137145693-4bc2bf05-62a3-4595-9008-7b78196ebcd9.png">
-
-#### 개선하기
+#### 실행결과(before)
 ![v1](https://user-images.githubusercontent.com/45876793/137146169-065133f5-93a3-4a4d-ba63-14c20695e3b5.png)
 
 <img width="737" alt="스크린샷 2021-10-13 오후 10 50 54" src="https://user-images.githubusercontent.com/45876793/137146178-373dcc43-4acb-44c6-87e8-5a1081d97b4e.png">
 
+<img width="983" alt="스크린샷 2021-10-13 오후 10 47 38" src="https://user-images.githubusercontent.com/45876793/137145693-4bc2bf05-62a3-4595-9008-7b78196ebcd9.png">
+
+#### 개선하기
 현재 `programmer` 테이블을 hobby를 통해 구분짓고 있습니다. 이때 hobby에 대한 인덱스가 걸려있지 않기 때문에 전체 테이블을 Full Scan한 후, 필터를 걸어준다고 생각이됩니다. 따라서 hobby에 대해 인덱스를 만들어줬습니다.
 
 ```sql
@@ -136,8 +135,55 @@ hobby 인덱스, id 인덱스를 사용하여 Table Full Scan에서 Index Full S
 <img width="982" alt="스크린샷 2021-10-14 오전 2 59 07" src="https://user-images.githubusercontent.com/45876793/137188077-80227813-0a95-4cad-ad3d-11cfc61ca25d.png">
 
 ### 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
-#### 쿼리
-#### 인덱스
+
+#### 쿼리 & 결과
+```sql
+SELECT
+    c.programmer_id, hospital.name AS hospital_name
+FROM 
+    (SELECT hospital_id, programmer_id FROM covid WHERE programmer_id IS NOT NULL) AS c
+JOIN hospital
+    ON hospital.id = c.hospital_id
+```
+<img width="183" alt="스크린샷 2021-10-14 오전 4 04 51" src="https://user-images.githubusercontent.com/45876793/137197184-5017220c-a3b8-4cc8-b8b2-973f615d4a96.png">
+
+#### 실행결과(before)
+![v1](https://user-images.githubusercontent.com/45876793/137197353-d0bfc3b1-9561-45d3-811f-4bc6ff02ce4a.png)
+
+<img width="810" alt="스크린샷 2021-10-14 오전 4 06 12" src="https://user-images.githubusercontent.com/45876793/137197357-e0e61797-c44c-4550-93ec-fc6292402494.png">
+
+<img width="1057" alt="스크린샷 2021-10-14 오전 4 39 36" src="https://user-images.githubusercontent.com/45876793/137201778-c18e4eec-75e1-4ecd-a90b-1e87298ded1f.png">
+
+#### 개선하기
+먼저 `covid`와 `hospital`의 id에 pk, unique를 추가해줍니다.
+```sql
+ALTER TABLE `subway`.`covid` 
+CHANGE COLUMN `id` `id` BIGINT(20) NOT NULL ,
+ADD PRIMARY KEY (`id`),
+ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
+```
+```sql
+ALTER TABLE `subway`.`hospital` 
+CHANGE COLUMN `id` `id` INT(11) NOT NULL ,
+ADD PRIMARY KEY (`id`),
+ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
+```
+
+`covid`는 `programmer_id`와 `hospital_id`를 사용하므로 인덱스를 만들어줍니다. pk를 추가해준 후 실행계획을 보면 `covid` - `hospital` 순으로 쿼리가 실행됩니다. 따라서 `covid`의 WHERE 절에서 사용되는 `programmer_id`, JOIN의 ON절에서 사용되는 `hospital_id` 순서로 복합 인덱스를 만들어줍니다.
+
+```sql
+CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (programmer_id, hospital_id);
+```
+
+#### 실행결과(after)
+
+![explain](https://user-images.githubusercontent.com/45876793/137200159-a6b67c0b-a361-423f-bb6b-884888b92915.png)
+
+<img width="965" alt="스크린샷 2021-10-14 오전 4 25 36" src="https://user-images.githubusercontent.com/45876793/137200161-0a66d8a9-6bde-4830-b992-1cb4b66b347b.png">
+
+`covid`는 Table Full Scan에서 Index Range Scan으로, `hospital`은 Table Full Scan에서 Unique Scan으로 변경된 것을 볼 수 있습니다. 시간은 이전과 큰 차이가 없는 모습입니다.
+
+<img width="1059" alt="스크린샷 2021-10-14 오전 4 28 31" src="https://user-images.githubusercontent.com/45876793/137200257-e3cb60ae-3427-444e-8e00-a70a98b33a96.png">
 
 ### 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 #### 쿼리

@@ -93,3 +93,10 @@ where s.사원번호 = b.사원번호 group by b.사원번호, b.직급명 order
 where c.사원번호 = g.사원번호 and c.입출입시간 = g.입출입시간) t 
 
 where a.사원번호 = t.사원번호;
+
+
+
+실행결과
+
+![result](./QueryPractice.png)
+

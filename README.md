@@ -421,7 +421,7 @@
       inner join 
           hospital h on c.hospital_id = h.id
   where p.hobby = 'yes'
-  or p.years_coding = '0-2 years'
+    or (p.student <> 'no' and p.years_coding = '0-2 years')
   order by p.id
   ;
   ```

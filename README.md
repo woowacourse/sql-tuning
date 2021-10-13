@@ -110,18 +110,18 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 - [x]  주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
     - [x]  [Coding as a Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
         
-        ### 제약조건
+        ### ~~제약조건~~
         
-        id, hobby 복합 제약조건, 설정 
+        ~~id, hobby 복합 제약조건, 설정~~ 
         
         ```sql
-        ALTER TABLE programmer ADD UNIQUE `id_hobby_unique` (id, hobby);
+        ~~ALTER TABLE programmer ADD UNIQUE `id_hobby_unique` (id, hobby);~~
         ```
         
-        ### **쿼리**
+        ### **~~쿼리~~**
         
         ```sql
-        SELECT `yes` , `no`
+        ~~SELECT `yes` , `no`
         FROM (SELECT ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as `yes`
         		FROM programmer
         		WHERE hobby = 'Yes'
@@ -129,30 +129,80 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         (SELECT ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as `no`
         		FROM programmer
         		WHERE hobby = 'No'
-        ) as `NO`;
+        ) as `NO`;~~
         ```
+        
+        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b6781671-49e1-4992-9a29-5662aead7301/Untitled.png)
         
         ![https://user-images.githubusercontent.com/48986787/136815843-e419168f-5a04-48bf-add7-1515bd6b7338.png](https://user-images.githubusercontent.com/48986787/136815843-e419168f-5a04-48bf-add7-1515bd6b7338.png)
         
         ![https://user-images.githubusercontent.com/48986787/136815769-ce96f5aa-168e-4ddf-abf7-6dd05b1999b6.png](https://user-images.githubusercontent.com/48986787/136815769-ce96f5aa-168e-4ddf-abf7-6dd05b1999b6.png)
         
-        **실행계획 (EXPLAIN)**
+        **~~실행계획 (EXPLAIN)~~**
         
         ![https://user-images.githubusercontent.com/48986787/136816057-f413478e-1282-4a99-9297-8def379bbd4f.png](https://user-images.githubusercontent.com/48986787/136816057-f413478e-1282-4a99-9297-8def379bbd4f.png)
         
-        **실행계획 (Workbench)**
+        **~~실행계획 (Workbench)~~**
         
         ![https://user-images.githubusercontent.com/48986787/136816094-12b882bd-2658-460e-bca8-480ed2cd3953.png](https://user-images.githubusercontent.com/48986787/136816094-12b882bd-2658-460e-bca8-480ed2cd3953.png)
         
-        > 아까워서 남겨보는 0.12 sec짜리의 쿼리..
+        > ~~아까워서 남겨보는 0.12 sec짜리의 쿼리..~~
         > 
         
         ```sql
-        SELECT hobby, ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as percentage
+        ~~SELECT hobby, ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as percentage
         FROM subway.programmer
         GROUP BY hobby
-        ORDER BY hobby desc;
+        ORDER BY hobby desc;~~
         ```
+        
+        ## 문제해결
+        
+        ### **쿼리**
+        
+        ```sql
+        SELECT 
+        	SUM(CASE WHEN hobby='Yes' THEN percentage ELSE 0 END) as Yes,
+        	SUM(CASE WHEN hobby='No' THEN percentage ELSE 0 END) as No
+        FROM ( 
+        	SELECT hobby, ROUND(COUNT(hobby)*100/(SELECT COUNT(*) FROM programmer) ,1) as percentage FROM subway.programmer GROUP BY hobby ORDER BY null
+        ) tb_derived;
+        ```
+        
+        기존의 쿼리가 너무 마음에 들지않아. 위와 같이 쿼리를 변경했어요. 
+        하지만 좁혀지지 않는 통곡의 0.1초대의 벽이 느껴졌어요. (0.11~2초의 저주)
+        
+        ![https://user-images.githubusercontent.com/48986787/137138204-1555180d-70b6-488d-96bc-384bf756d953.png](https://user-images.githubusercontent.com/48986787/137138204-1555180d-70b6-488d-96bc-384bf756d953.png)
+        
+        hobby의 카디널리티가 낮아, (id, unique) 복합유니크키를 유지했던 것이 문제였여요. 
+        쿼리에서 복합 unique키중 하나인 hobby를 Group by를 하려하니, Using temporary, 즉 내부에 임시 테이블이 추가되며 속도 저하가 일어난게 화근이었네요. 
+        인덱스가 아니기에 정렬됨을 보장하지 않아 생기는 문제였어요. 
+        
+        쿼리 상으로, 또한 실행계획상으로도 더이상 줄일 수 없다고 판단이 되어. 기존에 유지하던 방식을 버리기로 했어요. 
+        
+        ```sql
+        DROP INDEX `id_hobby_unique`  ON `subway`.`programmer`;
+        ```
+        
+        기존에 존재하던 UNIQUE 제약조건을 삭제하고, 
+        
+        ```sql
+        CREATE INDEX `idx_programmer_hobby`  ON `subway`.`programmer` (hobby);
+        ```
+        
+        hobby만 가지는 인덱스를 추가했어요. 
+        
+        ![https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png](https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png)
+        
+        **실행계획 (EXPLAIN)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png](https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png)
+        
+        **실행계획 (Workbench)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png](https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png)
+        
+        쿼리가 확실히 줄어둔 것을 확인할 수 있어요. 
         
     - [x]  프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
         
@@ -187,14 +237,14 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         
     - [x]  프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
         
-        ### 제약조건
+        ### ~~제약조건~~
         
-        인덱스 생성하지 않음.
+        ~~인덱스 생성하지 않음.~~
         
-        ### **쿼리**
+        ### **~~쿼리~~**
         
         ```sql
-        SELECT 
+        ~~SELECT 
             covid.id,
             hospital.name,
             user.Hobby,
@@ -212,21 +262,67 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
                 AND user.student <> 'NO'
                 AND user.student <> 'NA')
                 OR (user.years_coding = '0-2 years')
-        ;
+        ;~~
         ```
         
         ![https://user-images.githubusercontent.com/48986787/136866681-88cea992-8a54-4496-9d0d-a2bddb526c53.png](https://user-images.githubusercontent.com/48986787/136866681-88cea992-8a54-4496-9d0d-a2bddb526c53.png)
         
         ![https://user-images.githubusercontent.com/48986787/136866711-15173e00-9791-4d8d-94c7-c66d22dd0127.png](https://user-images.githubusercontent.com/48986787/136866711-15173e00-9791-4d8d-94c7-c66d22dd0127.png)
         
-        **실행계획 (EXPLAIN)**
+        **~~실행계획 (EXPLAIN)~~**
         
         ![https://user-images.githubusercontent.com/48986787/136821094-ade65452-f169-404d-abe5-de6dd3c1fed4.png](https://user-images.githubusercontent.com/48986787/136821094-ade65452-f169-404d-abe5-de6dd3c1fed4.png)
         
-        **실행계획 (Workbench)**
+        **~~실행계획 (Workbench)~~**
         
         ![https://user-images.githubusercontent.com/48986787/136866751-05e1adaa-7076-47a5-8e13-50ec2f12eca7.png](https://user-images.githubusercontent.com/48986787/136866751-05e1adaa-7076-47a5-8e13-50ec2f12eca7.png)
         
+    
+    ## 문제해결1
+    
+    ### **쿼리**
+    
+    ```sql
+    SELECT C.id, H.name, P.Hobby, P.Dev_Type, P.Years_Coding, P.student
+    FROM (SELECT id, hospital_id, programmer_id FROM subway.covid) AS C
+    INNER JOIN (SELECT id, name FROM hospital) AS H ON H.id = C.hospital_id
+    INNER JOIN (
+    	SELECT id, Hobby, Dev_Type, Years_Coding, student FROM programmer 
+        WHERE (hobby = 'Yes'
+            AND student <> 'NO'
+            AND student <> 'NA')
+            OR (years_coding = '0-2 years')) AS P ON P.id = C.programmer_id
+    ;
+    ```
+    
+    전체 테이블에서 where 절을 거는 것이 마음에 들지 않았어요. FROM절에서 JOIN을 할때, 조건이 필요한 테이블은 조인 전 조건에 따라 분류해주면, 시간도 절약될 것이라 생각했어요.
+    
+    ![https://user-images.githubusercontent.com/48986787/137147909-d996dac7-e2df-4254-82ef-c5c195b98eb9.png](https://user-images.githubusercontent.com/48986787/137147909-d996dac7-e2df-4254-82ef-c5c195b98eb9.png)
+    
+    **0.026/sec**이 걸리던 쿼리가 **0.0085/sec**으로 3배가량 개선 됏네요! 
+    
+    **실행계획 (EXPLAIN)**
+    
+    ![https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png](https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png)
+    
+    **실행계획 (Workbench)**
+    
+    ![https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png](https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png)
+    
+    실행계획에서도 전반적인 cost가 감소한 것을 확인할 수 있네요! 
+    
+    ### 문제해결2 - hostpital의 name컬럼이 unique한가?에 대한 고찰.
+    
+    병원이름이 과연 겹칠까? 라고 생각을 했는데, 어쩌면 겹칠 수 있다고 생각해요. 사람 이름도 동일이름이 많은데 병원 이름도 분명 겹칠거에요 (수많은 "김내과"들..)
+    hospital에 있던 name의 UNIQUE 속성을 제거했어요.
+    
+    ```sql
+    DROP INDEX `name_UNIQUE`  ON `subway`.`hospital`;
+    ```
+    
+    실행되는 쿼리도 차이가 없네요! ("마음대로 UNIQUE 속성을 정의하지 말자"를 배웠네요 ㅎㅎ)
+    
+    ![https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png](https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png)
     
     - [x]  서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
         
@@ -245,27 +341,10 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         ```sql
         SELECT 
             stay, COUNT(stay)
-        FROM
-            (SELECT 
-                id
-            FROM
-                subway.member
-            WHERE
-                age BETWEEN 20 AND 29) AS M
-        INNER JOIN
-            (SELECT 
-                programmer_id, member_id, stay
-            FROM
-                covid) AS C ON C.member_id = M.id
-        INNER JOIN
-            (SELECT 
-                id, member_id
-            FROM
-                programmer
-            WHERE
-                country = 'India') AS P ON P.id = C.programmer_id
-        GROUP BY stay
-        ;
+        FROM (SELECT id FROM subway.member WHERE age BETWEEN 20 AND 29) AS M
+        INNER JOIN (SELECT programmer_id, member_id, stay FROM covid) AS C ON C.member_id = M.id
+        INNER JOIN (SELECT id, member_id FROM programmer WHERE country = 'India') AS P ON P.id = C.programmer_id
+        GROUP BY stay;
         ```
         
         ![https://user-images.githubusercontent.com/48986787/136889997-91a14a22-541e-4698-9ad8-a85d5ac4bae9.png](https://user-images.githubusercontent.com/48986787/136889997-91a14a22-541e-4698-9ad8-a85d5ac4bae9.png)
@@ -294,34 +373,12 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         ### **쿼리**
         
         ```sql
-        SELECT 
-            exercise, COUNT(exercise)
-        FROM
-            (SELECT 
-                id
-            FROM
-                subway.member
-            WHERE
-                age BETWEEN 30 AND 39) AS M
-        INNER JOIN
-            (SELECT 
-                id, member_id, hospital_id, programmer_id
-            FROM
-                covid) AS C ON C.member_id = M.id
-        INNER JOIN
-            (SELECT 
-                id, exercise
-            FROM
-                programmer) AS P ON P.id = C.programmer_id
-        INNER JOIN
-            (SELECT 
-                id, name
-            FROM
-                hospital
-            WHERE
-                name = '서울대병원') AS H ON H.id = C.hospital_id
-        GROUP BY exercise
-        ;
+        SELECT exercise, COUNT(exercise)
+        FROM (SELECT id FROM subway.member WHERE age BETWEEN 30 AND 39) AS M
+        INNER JOIN (SELECT id, member_id, hospital_id, programmer_id FROM covid) AS C ON C.member_id = M.id
+        INNER JOIN (SELECT id, exercise FROM programmer) AS P ON P.id = C.programmer_id
+        INNER JOIN (SELECT id, name FROM hospital WHERE name = '서울대병원') AS H ON H.id = C.hospital_id
+        GROUP BY exercise;
         ```
         
         ![https://user-images.githubusercontent.com/48986787/136895512-4eb22980-f5b4-442f-9f10-b04d36689d03.png](https://user-images.githubusercontent.com/48986787/136895512-4eb22980-f5b4-442f-9f10-b04d36689d03.png)

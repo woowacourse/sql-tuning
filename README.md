@@ -368,11 +368,8 @@
   select h.name hospital_name, c.id covid_id
   from programmer p
           inner join 
-      member m
-          on p.member_id = m.id
-          inner join
       covid c
-          on c.member_id = m.id
+          on c.member_id = p.id and c.member_id is not null
           inner join
       hospital h
           on h.id = c.hospital_id;
@@ -421,7 +418,7 @@
       inner join 
           hospital h on c.hospital_id = h.id
   where p.hobby = 'yes'
-  or p.years_coding between 0 and 2
+  or p.years_coding = '0-2 years'
   order by p.id
   ;
   ```
@@ -449,12 +446,16 @@
   from programmer p
           inner join
       covid c
-          on c.member_id = p.id
+          on c.member_id = p.id and c.member_id is not null
+          inner join
+      member m 
+          on m.id = p.member_id
           inner join
       hospital h
           on h.id = c.hospital_id
   where h.name = '서울대병원'
   and p.country = 'india'
+  and m.age between 20 and 29
   group by c.stay
   ;
   ```
@@ -484,7 +485,7 @@
   select count(p.exercise), p.exercise
   from covid c
       inner join hospital h
-          on c.hospital_id = h.id
+          on c.hospital_id = h.id and c.member_id is not null
       inner join programmer p
           on c.programmer_id = p.id
       inner join member m

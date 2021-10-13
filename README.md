@@ -134,7 +134,7 @@ hobby 인덱스, id 인덱스를 사용하여 Table Full Scan에서 Index Full S
 
 <img width="982" alt="스크린샷 2021-10-14 오전 2 59 07" src="https://user-images.githubusercontent.com/45876793/137188077-80227813-0a95-4cad-ad3d-11cfc61ca25d.png">
 
-### 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
+### 프로그래머별로 해당하는 병원 이름을 반환하세요.
 
 #### 쿼리 & 결과
 ```sql
@@ -185,9 +185,28 @@ CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (program
 
 <img width="1059" alt="스크린샷 2021-10-14 오전 4 28 31" src="https://user-images.githubusercontent.com/45876793/137200257-e3cb60ae-3427-444e-8e00-a70a98b33a96.png">
 
-### 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
-#### 쿼리
-#### 인덱스
+### 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
+#### 쿼리 & 결과
+```sql
+SELECT
+  p.id, hospital.name AS hospital_name
+FROM
+  (SELECT hospital_id, programmer_id FROM covid WHERE programmer_id IS NOT NULL) AS c
+    JOIN (SELECT id FROM programmer WHERE (hobby = 'Yes' AND student LIKE 'Yes%') OR years_coding = '0-2 years') AS p
+        ON c.programmer_id = p.id
+    JOIN hospital
+        ON hospital.id = c.hospital_id
+```
+<img width="142" alt="스크린샷 2021-10-14 오전 7 34 37" src="https://user-images.githubusercontent.com/45876793/137221842-d4bf6756-13f4-4836-94bb-b55b80260acf.png">
+
+#### 실행결과
+![explain](https://user-images.githubusercontent.com/45876793/137221923-f90cb719-fdbd-43f6-880a-1e395e5272d8.png)
+
+<img width="1105" alt="스크린샷 2021-10-14 오전 7 37 00" src="https://user-images.githubusercontent.com/45876793/137222007-f1891d88-1435-42cd-ad06-c54d677bfe9e.png">
+
+이전 문제에서 `idx_covid_programmer_id_hospital_id`와 `hospital` pk를 등록했었기 때문에 결과가 잘 나왔습니다. 추가적으로 `programmer`의 Full Table Scan을 바꿔보고 싶었으나 OR 조건을 사용하고 있어서 Full Scan을 할 수 밖에 없는 것 같습니다.
+
+<img width="1056" alt="스크린샷 2021-10-14 오전 7 34 26" src="https://user-images.githubusercontent.com/45876793/137221832-d5b8c2db-ff0f-4b66-b9a3-cc236fc5cce5.png">
 
 ### 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 #### 쿼리

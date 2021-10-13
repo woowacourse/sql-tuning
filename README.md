@@ -40,7 +40,6 @@ ORDER BY 연봉 DESC;
 #### 실행결과
 <img width="427" alt="스크린샷 2021-10-13 오후 9 22 02" src="https://user-images.githubusercontent.com/45876793/137131312-d7ff977b-d936-432a-a780-d74caddd1c9d.png">
 
-
 <img width="1091" alt="스크린샷 2021-10-13 오후 9 24 42" src="https://user-images.githubusercontent.com/45876793/137131755-c868e0a4-8ec0-4aba-bc48-8bbdc2d5a7fe.png">
 
 <div style="line-height:1em"><br style="clear:both" ></div>
@@ -76,7 +75,7 @@ CREATE INDEX `idx_사원출입기록_사원번호` on `tuning`.`사원출입기�
 
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+    - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
     - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
@@ -92,7 +91,49 @@ CREATE INDEX `idx_사원출입기록_사원번호` on `tuning`.`사원출입기�
 ### Coding as a Hobby 와 같은 결과를 반환하세요.
 
 #### 쿼리
-#### 인덱스
+```sql
+SELECT
+    hobby, 
+    ROUND(COUNT(*) * 100 / total.count, 1) AS percent
+FROM
+    programmer
+JOIN
+    (SELECT COUNT(*) AS count FROM programmer) AS total
+GROUP BY hobby, count;
+```
+#### 실행결과(before)
+
+<img width="105" alt="스크린샷 2021-10-13 오후 10 47 14" src="https://user-images.githubusercontent.com/45876793/137145681-f41e2f14-3fc7-4e21-aad0-0a188ad95d6a.png">
+
+<img width="983" alt="스크린샷 2021-10-13 오후 10 47 38" src="https://user-images.githubusercontent.com/45876793/137145693-4bc2bf05-62a3-4595-9008-7b78196ebcd9.png">
+
+#### 개선하기
+![v1](https://user-images.githubusercontent.com/45876793/137146169-065133f5-93a3-4a4d-ba63-14c20695e3b5.png)
+
+<img width="737" alt="스크린샷 2021-10-13 오후 10 50 54" src="https://user-images.githubusercontent.com/45876793/137146178-373dcc43-4acb-44c6-87e8-5a1081d97b4e.png">
+
+현재 `programmer` 테이블을 hobby를 통해 구분짓고 있습니다. 이때 hobby에 대한 인덱스가 걸려있지 않기 때문에 전체 테이블을 Full Scan한 후, 필터를 걸어준다고 생각이됩니다. 따라서 hobby에 대해 인덱스를 만들어줬습니다.
+
+```sql
+CREATE INDEX `idx_programmer_hobby`  ON `subway`.`programmer` (hobby);
+```
+
+추가적으로 `전체 프로그래머 수를 구하기 위한 서브쿼리`는 hobby 인덱스가 아닌 unique한 값을 이용해주면 성능 향상이 있을 것이라 생각해 `programmer` 테이블의 id에 pk와 unique를 걸어줬습니다.
+```sql
+ALTER TABLE `subway`.`programmer` 
+CHANGE COLUMN `id` `id` BIGINT(20) NOT NULL,
+ADD PRIMARY KEY (`id`),
+ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
+```
+#### 실행결과(after)
+
+![v3](https://user-images.githubusercontent.com/45876793/137187780-d783d3a3-cf16-4511-9a30-a9397b14da70.png)
+
+<img width="733" alt="스크린샷 2021-10-14 오전 2 59 31" src="https://user-images.githubusercontent.com/45876793/137187787-246150f6-d7a0-4978-ab06-8ed252d83bfb.png">
+
+hobby 인덱스, id 인덱스를 사용하여 Table Full Scan에서 Index Full Scan으로 변경된 것을 볼 수 있습니다. 다만 Query Cost는 높아졌습니다.
+
+<img width="982" alt="스크린샷 2021-10-14 오전 2 59 07" src="https://user-images.githubusercontent.com/45876793/137188077-80227813-0a95-4cad-ad3d-11cfc61ca25d.png">
 
 ### 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
 #### 쿼리

@@ -6,26 +6,25 @@
 
 ```sql
 SELECT 사원출입기록.사원번호, 
-	ANY_VALUE(고연봉관리자.이름) as 이름, 
+    ANY_VALUE(고연봉관리자.이름) as 이름, 
     ANY_VALUE(고연봉관리자.연봉) as 연봉, 
     ANY_VALUE(고연봉관리자.직급명) as 직급명, 
     MAX(사원출입기록.입출입시간) as 입출입시간, 
     사원출입기록.지역, 
     ANY_VALUE(사원출입기록.입출입구분) as 입출입구분 
 FROM 사원출입기록
-	JOIN 
-		(SELECT 부서관리자.사원번호, 사원.이름, 급여.연봉, 직급.직급명
+    JOIN (SELECT 부서관리자.사원번호, 사원.이름, 급여.연봉, 직급.직급명
         FROM 부서
-			JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
-			JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
+            JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
+            JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
             JOIN 사원 ON 사원.사원번호 = 부서관리자.사원번호
             JOIN 직급 ON 직급.사원번호 = 부서관리자.사원번호
-		WHERE 비고 = 'active'
-			AND current_date() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자
-			AND current_date() BETWEEN 급여.시작일자 AND 급여.종료일자
-			AND current_date() BETWEEN 직급.시작일자 AND 직급.종료일자
-		ORDER BY 급여.연봉 DESC
-		LIMIT 5) 고연봉관리자 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
+        WHERE 비고 = 'active'
+            AND current_date() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자
+            AND current_date() BETWEEN 급여.시작일자 AND 급여.종료일자
+            AND current_date() BETWEEN 직급.시작일자 AND 직급.종료일자
+        ORDER BY 급여.연봉 DESC
+        LIMIT 5) 고연봉관리자 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
 WHERE 사원출입기록.입출입구분 = 'O'
 GROUP BY 사원출입기록.사원번호, 사원출입기록.지역
 ORDER BY NULL;
@@ -89,7 +88,7 @@ ORDER BY NULL;
 ```sql
 SELECT covid.programmer_id, hospital.name 
 FROM covid
-	JOIN hospital ON hospital.id = covid.hospital_id
+    JOIN hospital ON hospital.id = covid.hospital_id
 WHERE covid.programmer_id IS NOT NULL;
 ```
 
@@ -106,15 +105,15 @@ WHERE covid.programmer_id IS NOT NULL;
 ```sql
 SELECT young_programmer.id, hospital.name
 FROM covid
-	JOIN (SELECT programmer.id
-		FROM programmer
+    JOIN (SELECT programmer.id
+        FROM programmer
         WHERE programmer.dev_type = 'Student' 
-			AND programmer.hobby = 'Yes'
+	        AND programmer.hobby = 'Yes'
         UNION ALL
         SELECT programmer.id
-		FROM programmer
+        FROM programmer
         WHERE programmer.years_coding = '0-2 years') young_programmer ON young_programmer.id = covid.programmer_id
-	JOIN hospital ON hospital.id = covid.hospital_id
+    JOIN hospital ON hospital.id = covid.hospital_id
 ORDER BY young_programmer.id;
 ```
 
@@ -131,10 +130,10 @@ ORDER BY young_programmer.id;
 ```sql
 SELECT covid.stay, count(1) as count
 FROM hospital
-	INNER JOIN covid ON covid.hospital_id = hospital.id 
+    INNER JOIN covid ON covid.hospital_id = hospital.id 
     INNER JOIN programmer ON programmer.id = covid.programmer_id
 WHERE hospital.name = '서울대병원'
-	AND programmer.country = 'India'
+    AND programmer.country = 'India'
 GROUP BY covid.stay
 ORDER BY NULL;
 ```
@@ -152,7 +151,7 @@ ORDER BY NULL;
 ```sql
 SELECT programmer.exercise, count(1) as count
 FROM hospital
-	INNER JOIN covid ON covid.hospital_id = hospital.id
+    INNER JOIN covid ON covid.hospital_id = hospital.id
     INNER JOIN programmer ON programmer.id = covid.programmer_id
 WHERE hospital.name = '서울대병원'
 GROUP BY programmer.exercise

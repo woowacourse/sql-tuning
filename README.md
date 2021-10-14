@@ -155,13 +155,7 @@ JOIN hospital
 <img width="1057" alt="스크린샷 2021-10-14 오전 4 39 36" src="https://user-images.githubusercontent.com/45876793/137201778-c18e4eec-75e1-4ecd-a90b-1e87298ded1f.png">
 
 #### 개선하기
-먼저 `covid`와 `hospital`의 id에 pk, unique를 추가해줍니다.
-```sql
-ALTER TABLE `subway`.`covid` 
-CHANGE COLUMN `id` `id` BIGINT(20) NOT NULL ,
-ADD PRIMARY KEY (`id`),
-ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
-```
+실행계획을 보면 `hospital` - `covid` 순으로 쿼리가 수행됩니다. 먼저 `hospital`의 Full Table Scan을 인덱스를 걸어 바꿔줬습니다. `hospital`은 id를 통해 비교하고 있기 때문에 id 칼럼을 pk, unique로 두어 인덱스를 걸어줬습니다.
 ```sql
 ALTER TABLE `subway`.`hospital` 
 CHANGE COLUMN `id` `id` INT(11) NOT NULL ,
@@ -169,7 +163,11 @@ ADD PRIMARY KEY (`id`),
 ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
 ```
 
-`covid`는 `programmer_id`와 `hospital_id`를 사용하므로 인덱스를 만들어줍니다. pk를 추가해준 후 실행계획을 보면 `covid` - `hospital` 순으로 쿼리가 실행됩니다. 따라서 `covid`의 WHERE 절에서 사용되는 `programmer_id`, JOIN의 ON절에서 사용되는 `hospital_id` 순서로 복합 인덱스를 만들어줍니다.
+이후 실행계획을 보면 실행 순서가 `covid` - `hospital` 순으로 바뀐걸 볼 수 있습니다.
+
+<img width="691" alt="스크린샷 2021-10-14 오후 4 31 03" src="https://user-images.githubusercontent.com/45876793/137272508-45817ce3-2fd0-44e8-b4db-eb50856f962f.png">
+
+`covid`는 여전히 Full Table Scan을 하고 있기때문에 `covid`에도 인덱스를 걸어줬습니다. `covid`의 경우 먼저 `programmer_id`를 WHERE절에 그 후 `hospital_id`를 JOIN에 사용하고 있으므로 (`programmer_id`, `hospital_id`) 인덱스를 만들어줬습니다.
 
 ```sql
 CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (programmer_id, hospital_id);
@@ -232,35 +230,73 @@ GROUP BY period
 <img width="979" alt="스크린샷 2021-10-14 오전 8 15 46" src="https://user-images.githubusercontent.com/45876793/137225337-23a0d33b-0c72-47b3-8bc6-a9ae4e4575ca.png">
 
 #### 개선하기
-`hospital`은 name으로, `programmer`는 country로 필터링을 하고 있는데 해당 인덱스가 없으므로 Full Table Scan을 하고 있습니다. 따라서 `hospital`의 name과, `programmer`의 country에 인덱스를 만들어 줬습니다.
+실행계획을 보면 `programmer` - `covid` - `member` - `hospital` 순으로 쿼리가 실행됩니다. 먼저 `programmer`의 Full Table Scan을 없애주기 위해 인덱스를 걸어줬습니다. `programmer`의 경우 WHERE 절에서 country를 사용하고 있으므로 `country`에 인덱스를 걸어줬습니다.
 
-현재 `hospital`의 name은 text type이기 때문에 인덱스를 만들 수 없습니다. 따라서 먼저 name을 varchar로 바꿔줬습니다.
-```sql
-ALTER TABLE `subway`.`hospital` 
-CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL ;
-```
-그 후 인덱스를 만들었습니다.
-
-```sql
-CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
-```
 ```sql
 CREATE INDEX `idx_programmer_country` ON `subway`.`programmer` (country);
 ```
-두 개의 인덱스를 만들어주니 실행순서가 바뀌면서 갑자기 멀쩡하던 `covid`가 Full Table Scan으로 변했습니다. `covid`는 `hospital_id`, `programmer_id`, `member_id`를 사용하므로 이 3개로 인덱스를 만들어 줬습니다. `idx_hospital_name`와 `idx_programmer_country`를 만들어 준 후, 실행계획을 보면 `hospital` - `programmer` - `member` 순으로 수행되므로 아래와 같은 순서로 인덱스를 만들어줬습니다.
+
+이후 실행계획을 보면 `programmer`는 인덱스를 사용하게 변한걸 볼 수 있습니다.
+
+<img width="1195" alt="스크린샷 2021-10-14 오후 4 45 49" src="https://user-images.githubusercontent.com/45876793/137273828-1fa10125-30a2-4de9-8d57-f0ff096699d9.png">
+
+이어서 `hospital`에도 인덱스를 걸어줬습니다. `hospital`은 WHERE절에서 name을 사용하고 있으므로 `name`에 인덱스를 걸어줬습니다.
+
+이때 `name`이 현재 TEXT 타입이어서 인덱스를 걸 수 없기 때문에 먼저 `name`의 타입을 varchar로 변경해주고 인덱스를 만들어줬습니다.
+```sql
+ALTER TABLE `subway`.`hospital` 
+CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL;
+```
+```sql
+CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
+```
+실행계획을 보면 두 개의 인덱스를 추가하고 나서 실행 순서가 바뀌면서 멀쩡하던 `covid`가 Full Table Scan으로 변했습니다.
+
+<img width="1153" alt="스크린샷 2021-10-14 오후 5 13 58" src="https://user-images.githubusercontent.com/45876793/137278157-f3d4f6a3-e312-459e-82e6-0d567fe1cef8.png">
+
+`covid`는 먼저 `hospital_id`, `programmer_id`, `member_id`를 통해 JOIN 하기 때문에 (`hospital_id`, `programmer_id`, `member_id`)인덱스를 만들어줬습니다.
 
 ```sql
 CREATE INDEX `idx_covid_hospital_id_programmer_id_member_id`  ON `subway`.`covid` (hospital_id, programmer_id, member_id);
 ```
 
-#### 실행결과(after)
-![explain](https://user-images.githubusercontent.com/45876793/137228867-9c1fdb7b-e841-479b-be7f-5da8bb6724c3.png)
+이후 실행계획을 보면 Table Full Scan이 없어진 것을 볼 수 있습니다.
 
-<img width="1275" alt="스크린샷 2021-10-14 오전 8 59 51" src="https://user-images.githubusercontent.com/45876793/137228916-5acb9106-d4a7-4de1-bc69-344b5aab3e18.png">
+<img width="1217" alt="스크린샷 2021-10-14 오후 5 45 35" src="https://user-images.githubusercontent.com/45876793/137283284-802fa988-6432-4a8b-a408-6646c09a713f.png">
+
+추가적으로 실행계획을 보면 `member`의 filtered가 비효율적인 것을 볼 수 있습니다. `member`에서는 age에 BETWEEN 구문을 쓰고 있기 때문에 age에 인덱스를 걸어 정렬되도록 하였습니다.
+
+#### 실행결과(after)
+![explain](https://user-images.githubusercontent.com/45876793/137283571-0fe5b004-0aeb-4bd0-89ae-ae46d8e061a2.png)
+
+<img width="1216" alt="스크린샷 2021-10-14 오후 5 44 15" src="https://user-images.githubusercontent.com/45876793/137283373-78861ba5-b594-4480-9b23-a1353dce99f4.png">
 
 <img width="983" alt="스크린샷 2021-10-14 오전 8 57 56" src="https://user-images.githubusercontent.com/45876793/137228631-883b4c93-4740-4e0e-ab78-cfc534da4713.png">
 
 
-### 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
-#### 쿼리
-#### 인덱스
+### 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
+
+#### 쿼리 & 결과 
+```sql
+SELECT
+    p.exercise AS exercise, COUNT(c.id) AS number_of_exercises
+FROM (SELECT id, hospital_id, member_id, programmer_id FROM covid) AS c
+JOIN (SELECT id FROM hospital WHERE name = '서울대병원') AS seoul_hospital
+    ON seoul_hospital.id = c.hospital_id
+JOIN (SELECT id FROM member WHERE age BETWEEN 30 AND 39) AS thirties
+    ON thirties.id = c.member_id
+JOIN (SELECT id, exercise FROM programmer) AS p
+    ON p.id = programmer_id
+GROUP BY p.exercise
+```
+<img width="266" alt="스크린샷 2021-10-14 오전 9 14 55" src="https://user-images.githubusercontent.com/45876793/137229747-fccf5e8a-e5d2-4243-8026-87fd6f638078.png">
+
+#### 실행결과
+
+![explain](https://user-images.githubusercontent.com/45876793/137284497-95ebdc57-295b-4abb-bccc-73be1c1a29c1.png)
+
+<img width="1217" alt="스크린샷 2021-10-14 오후 5 52 37" src="https://user-images.githubusercontent.com/45876793/137284506-1fac9494-b5c9-46e8-bcea-049527464bae.png">
+
+이전 과정에서 만들었던 인덱스들이 잘 동작하여 따로 인덱스를 추가하지 않았습니다.
+
+<img width="981" alt="스크린샷 2021-10-14 오후 5 57 44" src="https://user-images.githubusercontent.com/45876793/137285338-38fd3bce-d780-4c11-b0d8-0d44474d7842.png">

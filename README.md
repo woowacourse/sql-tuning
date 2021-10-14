@@ -73,22 +73,22 @@ CREATE INDEX `idx_사원출입기록_사원번호` on `tuning`.`사원출입기�
 
 ### * 요구사항
 
-- [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+- [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
     - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    - [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+    - [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
-### Coding as a Hobby 와 같은 결과를 반환하세요.
+### 1. Coding as a Hobby 와 같은 결과를 반환하세요.
 
 #### 쿼리 & 결과
 ```sql
@@ -134,7 +134,7 @@ hobby 인덱스, id 인덱스를 사용하여 Table Full Scan에서 Index Full S
 
 <img width="982" alt="스크린샷 2021-10-14 오전 2 59 07" src="https://user-images.githubusercontent.com/45876793/137188077-80227813-0a95-4cad-ad3d-11cfc61ca25d.png">
 
-### 프로그래머별로 해당하는 병원 이름을 반환하세요.
+### 2. 프로그래머별로 해당하는 병원 이름을 반환하세요.
 
 #### 쿼리 & 결과
 ```sql
@@ -183,7 +183,7 @@ CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (program
 
 <img width="1059" alt="스크린샷 2021-10-14 오전 4 28 31" src="https://user-images.githubusercontent.com/45876793/137200257-e3cb60ae-3427-444e-8e00-a70a98b33a96.png">
 
-### 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
+### 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
 #### 쿼리 & 결과
 ```sql
 SELECT
@@ -206,7 +206,7 @@ FROM
 
 <img width="1056" alt="스크린샷 2021-10-14 오전 7 34 26" src="https://user-images.githubusercontent.com/45876793/137221832-d5b8c2db-ff0f-4b66-b9a3-cc236fc5cce5.png">
 
-### 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
+### 4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
 #### 쿼리 & 결과
 ```sql
 SELECT
@@ -274,7 +274,7 @@ CREATE INDEX `idx_covid_hospital_id_programmer_id_member_id`  ON `subway`.`covid
 <img width="983" alt="스크린샷 2021-10-14 오전 8 57 56" src="https://user-images.githubusercontent.com/45876793/137228631-883b4c93-4740-4e0e-ab78-cfc534da4713.png">
 
 
-### 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
+### 5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
 
 #### 쿼리 & 결과 
 ```sql

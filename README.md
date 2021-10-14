@@ -58,7 +58,7 @@ inner join
     직급 on 사원.사원번호 = 직급.사원번호 and 직급.직급명 = 'Manager'
 order by 연봉 desc;
 ```
-### 현재 결과
+### 쿼리 결과
 <img width="154" alt="스크린샷 2021-10-14 오전 10 15 10" src="https://user-images.githubusercontent.com/56679885/137234103-cf1acddc-4965-4630-9a20-cde47b4fc9b0.png">
 
 Duration: 0.508 ~ 0.530 sec
@@ -71,17 +71,27 @@ Duration: 0.508 ~ 0.530 sec
 <img width="1355" alt="스크린샷 2021-10-15 오전 1 32 55" src="https://user-images.githubusercontent.com/56679885/137359398-930d62c5-6278-4cb6-9880-7049e5d4454f.png">
 
 ### 인덱스 적용
-`사원출입기록`을 join 하는 과정에서  
+<img width="1355" alt="1-인덱스 적용 전" src="https://user-images.githubusercontent.com/56679885/137370160-bedecb9a-e7e6-4aed-93f4-1d3cc0c7df74.png">
+
+실행계획을 보니 `사원출입기록`을 join 하는 과정에서 full table scan(type = ALL)이 일어나며 658,935 건이나 되는 row를 탐색하고 있었다. 그리고 필터율은 1% 밖에 되지 않았다.
+join 조건으로 거는 `사원출입기록`테이블의 `사원번호` 컬럼이 문제인 듯 했다. `사원번호`에 인덱스를 걸어서 테스트해보았다.
 
 ```sql
+# 인덱스 생성
 ALTER TABLE `tuning`.`사원출입기록` 
-ADD INDEX `I_사원번호_입출입기록` (`사원번호` ASC, `입출입구분` ASC);
+ADD INDEX `I_사원번호` (`사원번호` ASC);
 ```
 
-#### 실행계획
+![explain](https://user-images.githubusercontent.com/56679885/137371513-2a93206f-e013-47ac-99b4-2210edc4914d.png)
 
-### 현재 결과
+<img width="1326" alt="2-사원번호 인덱스 적용" src="https://user-images.githubusercontent.com/56679885/137370549-95241b71-af04-4582-8761-93676b75493c.png">
 
+인덱스 적용 후 실행계획을 보았다. 드리븐 테이블(`사원출입기록`)에서 PK 혹은 인덱스로 조인을 걸게 되었다(type = ref). 탐색하는 row 수도 4건으로 줄었다.
+쿼리 Duration도 매우 줄었다.
+
+<img width="153" alt="duration-2" src="https://user-images.githubusercontent.com/56679885/137371092-8da1fd05-5eff-45a1-bd3b-59924a707702.png">
+
+Duration: 0.0033 ~ 0.0071 sec
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

@@ -208,9 +208,58 @@ FROM
 
 <img width="1056" alt="스크린샷 2021-10-14 오전 7 34 26" src="https://user-images.githubusercontent.com/45876793/137221832-d5b8c2db-ff0f-4b66-b9a3-cc236fc5cce5.png">
 
-### 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
-#### 쿼리
-#### 인덱스
+### 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
+#### 쿼리 & 결과
+```sql
+SELECT
+    c.stay AS period, COUNT(c.id) AS number_of_people
+FROM (SELECT id, hospital_id, member_id, programmer_id, stay FROM covid) AS c
+JOIN (SELECT id FROM hospital WHERE name = '서울대병원') AS seoul_hospital
+	ON seoul_hospital.id = c.hospital_id
+JOIN (SELECT id FROM member WHERE age BETWEEN 20 AND 29) AS twenties
+	ON twenties.id = c.member_id
+JOIN (SELECT id FROM programmer WHERE country = 'India') AS indian
+     ON indian.id = programmer_id
+GROUP BY period
+```
+<img width="232" alt="스크린샷 2021-10-14 오전 8 13 18" src="https://user-images.githubusercontent.com/45876793/137225134-d7231bbf-4977-4ec2-ba46-7dda08c12556.png">
+
+#### 실행결과(before)
+![explain](https://user-images.githubusercontent.com/45876793/137225200-aa9232ed-d7f7-4dbc-a10a-90d6efce66c0.png)
+
+<img width="1192" alt="스크린샷 2021-10-14 오전 8 14 14" src="https://user-images.githubusercontent.com/45876793/137225205-4eefda6e-e27b-4e92-aef0-08c07931dd95.png">
+
+<img width="979" alt="스크린샷 2021-10-14 오전 8 15 46" src="https://user-images.githubusercontent.com/45876793/137225337-23a0d33b-0c72-47b3-8bc6-a9ae4e4575ca.png">
+
+#### 개선하기
+`hospital`은 name으로, `programmer`는 country로 필터링을 하고 있는데 해당 인덱스가 없으므로 Full Table Scan을 하고 있습니다. 따라서 `hospital`의 name과, `programmer`의 country에 인덱스를 만들어 줬습니다.
+
+현재 `hospital`의 name은 text type이기 때문에 인덱스를 만들 수 없습니다. 따라서 먼저 name을 varchar로 바꿔줬습니다.
+```sql
+ALTER TABLE `subway`.`hospital` 
+CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL ;
+```
+그 후 인덱스를 만들었습니다.
+
+```sql
+CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
+```
+```sql
+CREATE INDEX `idx_programmer_country` ON `subway`.`programmer` (country);
+```
+두 개의 인덱스를 만들어주니 실행순서가 바뀌면서 갑자기 멀쩡하던 `covid`가 Full Table Scan으로 변했습니다. `covid`는 `hospital_id`, `programmer_id`, `member_id`를 사용하므로 이 3개로 인덱스를 만들어 줬습니다. `idx_hospital_name`와 `idx_programmer_country`를 만들어 준 후, 실행계획을 보면 `hospital` - `programmer` - `member` 순으로 수행되므로 아래와 같은 순서로 인덱스를 만들어줬습니다.
+
+```sql
+CREATE INDEX `idx_covid_hospital_id_programmer_id_member_id`  ON `subway`.`covid` (hospital_id, programmer_id, member_id);
+```
+
+#### 실행결과(after)
+![explain](https://user-images.githubusercontent.com/45876793/137228867-9c1fdb7b-e841-479b-be7f-5da8bb6724c3.png)
+
+<img width="1275" alt="스크린샷 2021-10-14 오전 8 59 51" src="https://user-images.githubusercontent.com/45876793/137228916-5acb9106-d4a7-4de1-bc69-344b5aab3e18.png">
+
+<img width="983" alt="스크린샷 2021-10-14 오전 8 57 56" src="https://user-images.githubusercontent.com/45876793/137228631-883b4c93-4740-4e0e-ab78-cfc534da4713.png">
+
 
 ### 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 #### 쿼리

@@ -4,6 +4,12 @@
 M1 Mac에서 workbench로 EC2에 띄워져있는 docker mysql에 연결하여 진행하였습니다.
 
 ## A. 쿼리 연습
+
+```sql
+-- tuning 데이터베이스 사용
+USE tuning;
+```
+
 > 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
 (사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
 
@@ -70,6 +76,11 @@ CREATE INDEX `idx_사원출입기록_사원번호` on `tuning`.`사원출입기�
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 ## B. 인덱스 설계
+
+```sql
+-- subway 데이터베이스 사용
+USE subway;
+```
 
 ### * 요구사항
 

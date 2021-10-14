@@ -97,7 +97,7 @@ CREATE INDEX `idx_programmer_hobby` ON subway.programmer(hobby);
 
 ---
 
-
+# 1번문제
 
 - [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 - [x] 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
@@ -129,6 +129,8 @@ CREATE INDEX `idx_covid_programmerId_hospitalId` ON subway.covid (programmer_id,
 
 ---
 
+# 2번문제
+
 - [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 - [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
@@ -158,7 +160,7 @@ CREATE INDEX `idx_covid_programmerId_hospitalId` ON subway.covid (programmer_id,
 ![image](https://user-images.githubusercontent.com/18106839/137380868-4cbe045e-805a-43f7-81c6-9b9531ad1029.png)
 
 ---
-
+# 3번문제
 
 
 - [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
@@ -239,7 +241,7 @@ CREATE INDEX `idx_programmer_country` ON subway.programmer (country);
 - member 테이블 id primary key
 
 ----
-
+# 4번문제
 
 
 - [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환

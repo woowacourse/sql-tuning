@@ -281,6 +281,9 @@ CREATE INDEX `idx_covid_hospital_id_programmer_id_member_id`  ON `subway`.`covid
 <img width="1217" alt="스크린샷 2021-10-14 오후 5 45 35" src="https://user-images.githubusercontent.com/45876793/137283284-802fa988-6432-4a8b-a408-6646c09a713f.png">
 
 추가적으로 실행계획을 보면 `member`의 filtered가 비효율적인 것을 볼 수 있습니다. `member`에서는 age에 BETWEEN 구문을 쓰고 있기 때문에 age에 인덱스를 걸어 정렬되도록 하였습니다.
+```sql
+CREATE INDEX `idx_member_age` ON `subway`.`member` (age);
+```
 
 #### 실행결과(after)
 ![explain](https://user-images.githubusercontent.com/45876793/137283571-0fe5b004-0aeb-4bd0-89ae-ae46d8e061a2.png)

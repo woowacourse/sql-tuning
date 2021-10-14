@@ -185,6 +185,8 @@ ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
 
 `covid`는 여전히 Full Table Scan을 하고 있기때문에 `covid`에도 인덱스를 걸어줬습니다. `programmer`의 id와 `programmer_id`를 통해, `hospital`의 id와 `hospital_id`를 통해 JOIN하고 있고 `programmer`의 id와 `hospital`의 id는 이미 인덱스로 등록되어 있으므로, (`programmer_id`, `hospital_id`) 인덱스를 만들어줬습니다.
 
+❓ 실행계획을 보면 `hospital`이 먼저 실행되기 때문에 `covid` 인덱스를 (`hospital_id`, `programmer_id`) 순으로 만들어야되지 않을까 라고 생각했었는데, 이 순서로 하니 동작하지 않았습니다. 왜 `programmer_id`를 인덱스로 넣어야지 잘 동작하는지 모르겠습니다. 😭
+
 ```sql
 CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (programmer_id, hospital_id);
 ```

@@ -337,3 +337,140 @@ FROM
 id에 대해 Primary Key를 부여해둔 덕분일까? Unique Key Lookup 조회로 빠른 결과를 얻을 수 있었다.
 
 <br>
+
+## B-3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. 
+- '프로그래밍이 취미인 학생' 혹은 '주니어' 
+- 프로그래밍이 취미인 '학생' 혹은 '주니어'
+
+2가지 해석 방법이 있었다. 2가지 모두 해보았다.
+
+### B-3-1. '프로그래밍이 취미인 학생' 혹은 '주니어'
+```sql
+SELECT
+	programmer_id,
+    hospital_id,
+    hospital.name AS hospital_name
+FROM
+	hospital
+    JOIN covid ON hospital.id = covid.hospital_id
+    JOIN (
+		SELECT
+			id
+		FROM
+			programmer
+		WHERE
+			(hobby = 'Yes' AND dev_type LIKE '%Student%')
+            OR (years_coding = '0-2 years' AND dev_type LIKE '%Developer%')
+		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+ORDER BY
+	programmer_id
+;
+```
+```
+# programmer_id, hospital_id, hospital_name
+'5', '26', '우리들병원'
+'8', '23', '강남성심병원'
+'12', '26', '우리들병원'
+'13', '16', '이화여대병원'
+'20', '12', '중앙대병원'
+'39', '32', '국립암센터'
+'41', '26', '우리들병원'
+'42', '27', '을지병원'
+'58', '6', '아주대학병원'
+'61', '31', '인천백병원'
+'70', '31', '인천백병원'
+'81', '15', '고려대 구로병원'
+'87', '32', '국립암센터'
+'90', '19', '여의도성모병원'
+... (생략) ...
+
+0.207 sec
+```
+
+![image](https://user-images.githubusercontent.com/37354145/137484702-06c8f22d-b5f0-4056-9163-9df8bda60250.png)
+
+Primary Key가 모두 인덱싱이 되어 있었기 때문에 Unique Key Lookup이 되었으나, 
+`ORDER BY`절에 의해서 Duration 속도가 굉장히 떨어졌다.
+
+그러던 중, **인덱스는 항상 정렬 상태를 유지하므로 인덱스 순서에 따라 ORDER BY, GROUP BY를 위한 소트 연산을 생략할 수 있다**는 이야기가 떠올라 `ORDER BY`절을 제거했다.
+
+```sql
+SELECT
+	programmer_id,
+    hospital_id,
+    hospital.name AS hospital_name
+FROM
+	hospital
+    JOIN covid ON hospital.id = covid.hospital_id
+    JOIN (
+		SELECT
+			id
+		FROM
+			programmer
+		WHERE
+			(hobby = 'Yes' AND dev_type LIKE '%Student%')
+            OR (years_coding = '0-2 years' AND dev_type LIKE '%Developer%')
+		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+;
+```
+
+![image](https://user-images.githubusercontent.com/37354145/137485020-510a369f-3755-4b7c-b7cd-a264cad64220.png)
+
+```
+0.056 sec
+```
+
+정렬이 제거되어 큰 성능 개선을 맛볼 수 있었다!
+
+### B-3-2. 프로그래밍이 취미인 '학생' 혹은 '주니어'
+```sql
+SELECT
+	programmer_id,
+    hospital_id,
+    hospital.name AS hospital_name
+FROM
+	hospital
+    JOIN covid ON hospital.id = covid.hospital_id
+    JOIN (
+		SELECT
+			id
+		FROM
+			programmer
+		WHERE
+			hobby = 'Yes'
+            AND (
+				dev_type LIKE '%Student%'
+                OR (
+					years_coding = '0-2 years' AND dev_type LIKE '%Developer%'
+				)
+			)
+		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+;
+```
+```
+# programmer_id, hospital_id, hospital_name
+'5', '26', '우리들병원'
+'8', '23', '강남성심병원'
+'12', '26', '우리들병원'
+'13', '16', '이화여대병원'
+'20', '12', '중앙대병원'
+'39', '32', '국립암센터'
+'41', '26', '우리들병원'
+'42', '27', '을지병원'
+'58', '6', '아주대학병원'
+'61', '31', '인천백병원'
+'70', '31', '인천백병원'
+'81', '15', '고려대 구로병원'
+'87', '32', '국립암센터'
+'90', '19', '여의도성모병원'
+... (생략) ...
+
+0.065 sec
+```
+
+![image](https://user-images.githubusercontent.com/37354145/137485393-09937c1f-3c7d-45c1-b190-399cc7052d8e.png)
+
+이전 풀이법보다 0.01 sec 정도 느린 결과를 얻을 수 있었다.
+
+<br>
+

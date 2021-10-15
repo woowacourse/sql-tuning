@@ -18,7 +18,9 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 2. 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
 
 ### 쿼리작성(인덱스 적용 X)
+
 ```sql
+# 조회 쿼리
 select 
     사원.사원번호 as 사원번호, 
     사원.이름 as 이름,
@@ -47,7 +49,7 @@ inner join
         급여.종료일자 > now()
     and 
         부서관리자.종료일자 > now()
-	group by 부서관리자.사원번호
+	group by 부서관리자.사원번호, 급여.연봉
 	order by 급여.연봉 desc
 	limit 5) as 상위연봉부서관리자
 on 상위연봉부서관리자.사원번호 = 사원.사원번호
@@ -92,6 +94,38 @@ ADD INDEX `I_사원번호` (`사원번호` ASC);
 <img width="153" alt="duration-2" src="https://user-images.githubusercontent.com/56679885/137371092-8da1fd05-5eff-45a1-bd3b-59924a707702.png">
 
 Duration: 0.0033 ~ 0.0071 sec
+
+
+### 이슈
+
+**기존 group by문**
+```sql
+group by 부서관리자.사원번호
+```
+
+위의 group by문 을 사용하여 쿼리하던 중 아래와 같은 에러가 발생하며 쿼리에 실패했다.
+> Error Code: 1055. Expression #1 of ORDER BY clause is not in GROUP BY clause and contains nonaggregated column 'tuning.급여.연봉' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by
+
+검색해보니 mysql 5.7 이상부턴 sql_mode라는게 생겼고, 그 옵션 중 only_full_group_by 때문에 생긴 문제였다.
+- [mysql 공식문서](https://dev.mysql.com/doc/refman/5.7/en/group-by-handling.html)
+> MySQL rejects queries for which the select list, HAVING condition, or ORDER BY list refer to nonaggregated columns that are neither named in the GROUP BY clause nor are functionally dependent on them.
+> 
+> 해석: HAVING이나 ORDER BY목록이 GROUP BY절 에서 명명 되지 않았거나 기능적으로 종속되지 않은 집계되지 않은 열을 참조 하는 쿼리를 거부한다. (sql mode가 only_full_group_by일 때)
+
+해결 방법은 3가지다.
+1. 쿼리를 수정한다. 집계되지 않은 열을 group by에 추가한다.
+2. sql_mode의 only_full_group_by 속성을 끈다.
+3. any_value() 함수를 사용하여 집계되지 않는 컬럼을 쿼리한다. any_value()는 컬럼의 데이터 중 아무거나 선택하는 함수다.
+
+select와 order by에서 사용하는 `급여.연봉`을 group by에 추가했다.
+
+**수정한 group by문**
+```sql
+group by 부서관리자.사원번호, 급여.연봉
+```
+
+참고 블로그
+https://velog.io/@heumheum2/ONLYFULLGROUPBY
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

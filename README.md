@@ -62,7 +62,7 @@ order by `지출금액` desc;
 ```
 
 ## ERD of A
-  <img src="/images/erd-of-a.png" width="1000"/>
+  <img src="/images/erd-of-a.png" width="800"/>
 
 * [reverse engineering을 이용해 mysqlworkbench erd 생성하기](https://dololak.tistory.com/457)
 
@@ -129,7 +129,7 @@ CREATE INDEX I_사원번호 ON tuning.사원출입기록 (사원번호);
 들었어요. 근데 별 차이가 없더라구요? 이유가 뭘까요?
 
 ## ERD of B
-  <img src="/images/erd-of-b.png" width="1000"/>
+  <img src="/images/erd-of-b.png" width="800"/>
 
 ## B. 인덱스 설계
 * 조건  
@@ -155,7 +155,8 @@ order by percentage desc;
 
   <img src="/images/b1.png" width="900"/>
 
-* Duration: 0.051sec  
+* Duration: 0.053sec  
+
 #### 쿼리 및 인덱스에 대한 이유 + [질문]  
 우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 이번에는 programmer.id에 PK를 지정하고, hobby에 인덱스를 추가로 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블을 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보이네요.
 
@@ -177,7 +178,7 @@ from subway.hospital h
 * Duration: 0.023sec   
 
 #### 쿼리 및 인덱스에 대한 이유
-이번에는 인덱스를 따로 걸지 않았어요. pk로만 해결했습니다.
+이번에는 인덱스를 따로 걸지 않고 pk로만 해결했어요.
 
 Total number of rows in covid table -> 318325  
 Total number of rows in hospital table -> 32  
@@ -260,6 +261,10 @@ from subway.covid c
 where h.name = '서울대병원'
 group by c.stay;
 ```
+* 실행 결과
+  <img src="/images/b4-result.png" width="900"/>
+> 위 이미지는 B4에 대한 실행결과가 없다는 것을 깨닫고 뒤늦게 추가한지라 Duration 없이 결과만 있는 점 양해부탁드려요 😅 이미 After이 수행된 후여서.. ㅎㅎ
+
 * Duration: 0.142sec  
 
 #### After
@@ -277,6 +282,7 @@ group by c.stay;
 추가적으로 programmer와 member도 fk를 형성해주었어요. 또한 covid.stay도 카디널리티는 낮으나 group by 절에서 이용되고 있기에 인덱스로 추가해주었어요. 이후, Duration이 **0.052sec**으로 줄었어요. hospital.name까지 인덱스를 걸면, 성능이 더 개선될 것 같지만 TEXT 필드를 굳이 varchar로 변경하고 싶지 않고, 지금 수준도 만족할만하기에 굳이 추가하지 않았어요.
 
  <img src="/images/b4-2.png" width="900"/>
+
 * Duration: 0.052sec  
 
 ### B5 - 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
@@ -304,4 +310,5 @@ group by p.exercise;
 이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았다. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했다. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았다. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았다.
 
  <img src="/images/b5.png" width="900"/>
+
 * Duration: 0.086sec  

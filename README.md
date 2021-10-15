@@ -36,7 +36,7 @@ inner join (select 부서번호 from tuning.부서 where 비고 = 'Active') as `
 on `재직중인_부서관리자`.부서번호 = `활동중인_부서`.부서번호
 order by `재직자의_연봉`.연봉 desc
 limit 0,5) as `상위_연봉_부서관리자` 
-left join (select 사원번호, 입출입구분, 입출입시간, 지역 from tuning.사원출입기록 where 입출입구분 = 'O') as 사원출입기록 
+inner join (select 사원번호, 입출입구분, 입출입시간, 지역 from tuning.사원출입기록 where 입출입구분 = 'O') as 사원출입기록 
 on `상위_연봉_부서관리자`.사원번호 = 사원출입기록.사원번호
 order by `상위_연봉_부서관리자`.연봉 desc;
 ```
@@ -144,6 +144,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         inner join (select id from subway.hospital where name = '서울대병원') as hospital
         on covid.hospital_id = hospital.id
         group by covid.stay;
+        order by null;
         ```
         
        - hospital 테이블

@@ -300,3 +300,40 @@ GROUP BY
 duration에는 드라마틱한 변화가 없었지만, 그래프가 조금 더 간결해졌다!
 
 <br>
+
+## B-2. 각 프로그래머별로 해당하는 병원 이름을 반환하세요. 
+```sql
+SELECT
+	programmer_id,
+    hospital_id,
+    hospital.name AS hospital_name
+FROM
+	hospital
+    JOIN covid ON hospital.id = covid.hospital_id
+    JOIN programmer ON covid.programmer_id = programmer.id
+;
+```
+```
+# programmer_id, hospital_id, hospital_name
+'1', '8', '고려대병원'
+'2', '2', '분당서울대병원'
+'3', '10', '경희대병원'
+'4', '26', '우리들병원'
+'5', '26', '우리들병원'
+'7', '32', '국립암센터'
+'8', '23', '강남성심병원'
+'9', '1', '세브란스병원'
+'10', '10', '경희대병원'
+'11', '22', '한양대병원'
+'12', '26', '우리들병원'
+'13', '16', '이화여대병원'
+... (생략) ...
+
+0.0023 sec
+```
+
+![image](https://user-images.githubusercontent.com/37354145/137479385-9faef8d4-e522-4ee5-8003-7ea54f6187b6.png)
+
+id에 대해 Primary Key를 부여해둔 덕분일까? Unique Key Lookup 조회로 빠른 결과를 얻을 수 있었다.
+
+<br>

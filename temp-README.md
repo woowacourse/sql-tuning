@@ -111,6 +111,25 @@ CREATE INDEX I_사원번호 ON tuning.사원출입기록 (사원번호);
 
 ### B1 - Coding as a Hobby 와 같은 결과를 반환하세요.
 
+* programmer.id에 Unique PK 지정
+* hobby에 index 지정
+* filesort와 임시 테이블을 없애기 위해 `order by percentage desc` -> `order by null`로 변경해보았는데, 그렇게 많은 차이가 나지 않아 
+  우선 Yes가 위에 나오도록 `order by percentage desc`를 유지했습니다.
+
+```sql
+CREATE INDEX I_hobby ON subway.programmer (hobby);
+
+select hobby as 'coding as a hobby', round((count(id) * 100 / (select count(*) from subway.programmer)), 1) as 'percentage'
+from subway.programmer
+group by hobby
+order by percentage desc;
+```
+
+* 실행 결과  
+  <img src="/images/b1.png" width="900"/>
+
+* Duration: 0.051sec
+
 
 ### B2 - 프로그래머별로 해당하는 병원 이름을 반환하세요.
 * (covid.id, hospital.name)  

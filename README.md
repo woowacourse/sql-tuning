@@ -146,6 +146,11 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
     - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+        ```sql
+	SELECT hobby, (COUNT(hobby) / (SELECT COUNT(hobby) FROM programmer)) * 100 AS percentage 
+	FROM programmer 
+	GROUP BY hobby;
+	```
 
     - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 

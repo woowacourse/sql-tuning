@@ -474,3 +474,168 @@ FROM
 
 <br>
 
+## B-4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
+### 쿼리 작성
+```sql
+SELECT
+	stay,
+    COUNT(stay) AS india_patients_count
+FROM
+	covid
+    JOIN (
+		SELECT
+			id
+		FROM
+			hospital
+		WHERE
+			name = '서울대병원'
+    ) AS seoul_national_univ_hospital ON hospital_id = seoul_national_univ_hospital.id
+    JOIN (
+		SELECT
+			id
+		FROM
+			member
+		WHERE
+			age BETWEEN 20 AND 29
+	) AS twenties ON member_id = twenties.id
+    JOIN (
+		SELECT
+			id
+		FROM
+			programmer
+		WHERE
+			country = 'India'
+    ) AS indian ON programmer_id = indian.id
+GROUP BY
+	stay
+;
+```
+```
+# stay, india_patients_count
+'0-10', '3'
+'11-20', '25'
+'21-30', '30'
+'31-40', '18'
+'41-50', '2'
+'51-60', '17'
+'71-80', '6'
+'81-90', '1'
+'91-100', '1'
+'More than 100 Days', '2'
+
+0.319 sec
+```
+![image](https://user-images.githubusercontent.com/37354145/137489191-30e1410e-83b5-4683-9f14-c060ee371b05.png)
+
+### 쿼리 성능 최적화
+`hospital` 테이블을 조회할 때 발생하는 풀 스캔부터 제거하기 위해
+`hospital.name` 인덱싱을 진행하고자 했다.
+
+```sql
+CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
+```
+```
+Error Code: 1170. BLOB/TEXT column 'name' used in key specification without a key length
+```
+
+그러나 `name` 컬럼의 TEXT 타입은 인덱싱이 불가능했다. 때문에 `name` 컬럼을 VARCHAR 타입으로 변경하고 인덱싱을 다시 진행했다.
+
+```sql
+ALTER TABLE `subway`.`hospital` 
+CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL ;
+```
+```sql
+CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
+```
+```
+0.263 sec
+```
+![image](https://user-images.githubusercontent.com/37354145/137490264-3167f99e-d7f5-4052-a81d-3bafb3f41d38.png)
+
+다음으로 `covid ` 테이블에서 발생하는 풀 스캔 제거를 위해 인덱싱을 진행했다.
+
+```sql
+CREATE INDEX `idx_covid_hospital_id_member_id_programmer_id` ON `subway`.`covid` (hospital_id, member_id, programmer_id);
+```
+```
+0.121 sec
+```
+![image](https://user-images.githubusercontent.com/37354145/137490743-53b757e6-ad85-4bff-bef0-3bb5bd5a78cb.png)
+
+풀 스캔은 모두 사라졌으나 여전히 속도가 0.1 sec를 넘기고 있었다. 
+더 명확한 이유를 찾아보기 위해 EXPLAIN 쿼리 조회를 시도했다.
+
+```
+# id, select_type, table, partitions, type, possible_keys, key, key_len, ref, rows, filtered, Extra
+'1', 'SIMPLE', 'hospital', NULL, 'ref', 'PRIMARY,idx_hospital_name', 'idx_hospital_name', '1023', 'const', '1', '100.00', 'Using index; Using temporary; Using filesort'
+'1', 'SIMPLE', 'covid', NULL, 'ref', 'idx_covid_hospital_id_member_id_programmer_id', 'idx_covid_hospital_id_member_id_programmer_id', '9', 'func', '10177', '100.00', 'Using index condition'
+'1', 'SIMPLE', 'programmer', NULL, 'eq_ref', 'PRIMARY', 'PRIMARY', '8', 'subway.covid.programmer_id', '1', '10.00', 'Using where'
+'1', 'SIMPLE', 'member', NULL, 'eq_ref', 'PRIMARY', 'PRIMARY', '8', 'subway.covid.member_id', '1', '11.11', 'Using where'
+
+```
+
+`member` 테이블과 `programmer` 테이블을 조회하는데 where 절을 사용하고 있기 때문에 성능상 개선이 부족하다고 판단했다.
+
+```sql
+CREATE INDEX `idx_member_age` ON `subway`.`member` (age);
+CREATE INDEX `idx_programmer_country` ON `subway`.`programmer` (country);
+```
+```
+0.097 sec
+```
+
+그러나 여전히 만족스러운 성능 개선을 얻지 못했다. 무엇이 문제일까 고민하다가 
+JOIN 단계에서 `covid` 테이블에 존재하는 다른 컬럼들까지 모두 조회하기 때문에 
+성능 개선이 더딘게 아닐까 의심하게 되었다. 때문에 쿼리를 수정해보았다.
+
+```sql
+SELECT
+	covid.stay AS stay,
+    COUNT(covid.stay) AS india_patients_count
+FROM
+	(
+		SELECT 
+            hospital_id,
+            member_id,
+            programmer_id,
+            stay
+		FROM
+			covid
+    ) AS covid
+    JOIN (
+		SELECT
+			id
+		FROM
+			hospital
+		WHERE
+			name = '서울대병원'
+    ) AS seoul_national_univ_hospital ON covid.hospital_id = seoul_national_univ_hospital.id
+    JOIN (
+		SELECT
+			id
+		FROM
+			member
+		WHERE
+			age BETWEEN 20 AND 29
+	) AS twenties ON covid.member_id = twenties.id
+    JOIN (
+		SELECT
+			id
+		FROM
+			programmer
+		WHERE
+			country = 'India'
+    ) AS indian ON covid.programmer_id = indian.id
+GROUP BY
+	stay
+;
+```
+```
+0.038 sec
+```
+
+`covid` 테이블 관련 쿼리를 수정한 후 만족스러운 결과를 얻을 수 있었다.
+그러나 동일한 쿼리를 이용해서 여러차례 조회를 시도하면 0.033 ~ 0.096 sec 까지 
+편차가 큰 duration 결과를 보여주었다. 추가적인 고민이 필요할 것 같다.
+
+<br>

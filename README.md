@@ -142,7 +142,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         on covid.member_id = twenties_member.id
         inner join (select id from subway.hospital where name = '서울대병원') as hospital
         on covid.hospital_id = hospital.id
-        group by covid.stay;
+        group by covid.stay
         order by null;
         ```
         
@@ -154,7 +154,8 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
          - `(hospital_id, member_id, programmer_id, stay)` `INDEX` 생성
      
        - 실행 결과
-         <img width="1236" alt="스크린샷 2021-10-11 오전 2 00 26" src="https://user-images.githubusercontent.com/53412998/136705889-1842261b-e847-48cb-9ba3-39778d1d5172.png">
+        <img width="1360" alt="스크린샷 2021-10-15 오후 5 59 17" src="https://user-images.githubusercontent.com/53412998/137461640-64437153-f0b0-4e67-a7c3-2131837462f0.png">
+
 
     - [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
       

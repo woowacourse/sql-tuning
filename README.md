@@ -23,6 +23,7 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 
 <details>
   <summary>쿼리 작성</summary>
+  <br/>
 
   ```sql
   select 
@@ -111,7 +112,7 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
     <img src="https://user-images.githubusercontent.com/50176238/137470893-7f02025f-97b2-462e-b504-97697e61e3e5.png">
   </p>
   <p align="center">
-    <img src="https://user-images.githubusercontent.com/50176238/137328817-4bfb6e0f-a67d-4cff-9a48-50137e6692ae.png">
+    <img src="https://user-images.githubusercontent.com/50176238/137478973-b4ca7918-8072-4f84-a5f6-122b309c9efe.png">
   </p>
 
 </details>
@@ -140,27 +141,62 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
   저만 그런가 싶어 몇몇 크루들한테 물어봤는데, 저와 같은 경우도 있고 아닌 경우도 있더라구요 😵‍💫<br/>
   검프는 결과가 똑같이 나오나요??<br/>
 
-  ![non_equals_time](https://user-images.githubusercontent.com/50176238/137324185-7e567174-9ac5-474c-81b4-cc30af339fda.png)
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137324185-7e567174-9ac5-474c-81b4-cc30af339fda.png">
+  </p>
 
 </details>
 
 <br/>
     
-- [ ] 인덱스 설정을 추가하여 50ms 이하로 반환한다.
+- [x] 인덱스 설정을 추가하여 50ms 이하로 반환한다.
 
 <details>
   <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+  create index `idx_사원번호` on 사원출입기록 (사원번호);
+  ```
 
 </details>
 
 <details>
   <summary>실행 결과</summary>
 
+  #### 소요 시간
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137478470-80ab4752-3c1a-453a-9857-f8675409350c.png">
+  </p>
+
+  #### 실행 계획
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137478764-52e8b000-e8c3-490a-ad5f-07448b087bb4.png">
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137478881-ddc20dec-d35d-42ef-b2b3-cbd71ca6abba.png">
+  </p>
+
 </details>
 
-<br/>
+<details>
+  <summary>질문</summary>
+  <br/>
 
-![query_result](https://user-images.githubusercontent.com/50176238/137148711-9850c6e5-a0c9-417d-8f22-b26d35a992fc.png)
+  기존에는 `사원출입기록`에 아래처럼 인덱스가 걸려 있어, 조인을 할 때 Full Table Scan이 발생했습니다.<br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137479229-248f8549-9c51-475a-9c30-b31a74857efa.png">  
+  </p>
+  <br/>
+
+  그래서 Full Table Scan을 해결하려 (사원번호)로 인덱스를 걸었는데요.<br/>
+  그리고 실행 시간을 확인하니 67-70ms 정도는 나오는데, 50ms 이하로는 안 나오더라구요 🥲<br/>
+  다른 곳도 개선할 수 있는 부분이 있을까 싶어 여기저기 찾아보고 인덱스를 걸어봤는데요.<br/>
+  오히려 실행 시간이 늘어나는 경우도 있고, 딱히 나아지지 않았습니다 😂<br/>
+  검프는 어디에 인덱스를 추가해줬나요? 혹시 제가 놓친 게 있을까요??<br/>
+
+</details>
 
 <br/>
 

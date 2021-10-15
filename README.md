@@ -7,7 +7,7 @@
     * [1번](#실습-1번)
     * [2번](#실습-2번)
     * [3번](#실습-3번)
-* [ERD for A](#erd-of-a)
+* [ERD of A](#erd-of-a)
 * [A. 쿼리 연습](#a-쿼리-연습)
   * [A1 - 쿼리 작성만으로 1s 이하로 반환한다.](#a1---쿼리-작성만으로-1s-이하로-반환한다)
   * [A2 - 인덱스 설정을 추가하여 50 ms 이하로 반환한다.](#a2---인덱스-설정을-추가하여-50-ms-이하로-반환한다)
@@ -172,8 +172,8 @@ order by percentage desc;
 
 * Duration: 0.053sec  
 
-#### 쿼리 및 인덱스에 대한 이유 + [질문]  
-우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 이번에는 programmer.id에 PK를 지정하고, hobby에 인덱스를 추가로 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블을 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보이네요.
+#### 쿼리 및 인덱스에 대한 이유  
+우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 개선은 먼저 programmer.id에 PK를 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블은 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. 추가로 hobby에 인덱스를 지정해보았어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보이네요. 🥲
 
 
 
@@ -206,7 +206,7 @@ Total number of rows in student table -> 98855
 
 covid 테이블을 통해 programmer_id 및 hospital_id에 모두 접근할 수 있기에, covid를 기준으로 join을 수행했었어요. 하지만 더 적은 행의 개수를 가진 
 hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상 다름없는 결과가 나왔어요. 결국엔 3 테이블을 모두 inner join 하는 것이다 보니 동일하게 동작하는 것 같아요. (뇌피셜)
-추가적으로 covid.programmer_id, covid.hospital_id에 fk를 설정해주었어요. 하지만 오히려 fk 설정 전 Unique Key Lookup을 도는 게 더 나은 것 같아서, fk는 우선 지웠어요. 사실 하면서도 옳은 방향으로 하고있는게 맞는지 의문이 드네요..
+추가적으로 covid.programmer_id, covid.hospital_id에 fk를 설정해주었어요. 하지만 오히려 fk 설정 전 Unique Key Lookup을 도는 게 더 나은 것 같아서, fk는 다시 지웠어요. 사실 하면서도 옳은 방향으로 하고있는게 맞는지 의문이 드네요.. [질문] 이 문제에 대해 에어는 어떤 방식으로 요구사항을 만족시켰나요?
 
 
 
@@ -216,7 +216,7 @@ hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상
 ### B3 - 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
 * (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)  
 
-우선 이 문제는 씨유께선 어떤 의도인지 모르겠지만 저는 다음과 같이 해석하고 풀이했습니다.
+우선 이 문제는 씨유께선 어떤 의도인지 모르겠지만 저는 다음과 같이 해석하고 풀이했어요.
 > 프로그래밍이 취미인 학생 혹은 프로그래밍이 취미인 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
 
 #### Before
@@ -263,7 +263,7 @@ where p.hobby = 'Yes'
 Programmer.id가 이미 select절에서 사용되고 있고, programmer.id는 pk이자 인덱스이므로 항상 정렬 상태를 유지해요. 따라서 order by 절을 생략해 불필요한 sort 및 filesort를 줄일 수 있었어요.
 
 [질문]
-* 그럼 이미 p.id로 소트가 된 상태인데, order by 절에 p.id를 명시해주더라도 filesort가 발생하지 않아야하는거 아닐까요? 왜 불필요한 정렬이 발생하는지 혹시 아시나요?
+* 그럼 이미 p.id로 소트가 된 상태인데, order by 절에 p.id를 명시해주더라도 filesort가 발생하지 않아야하는거 아닐까요? 왜 order by로 명시하면 불필요한 정렬이 발생하는지 혹시 아시나요?
 
 
 
@@ -305,7 +305,7 @@ group by c.stay;
 -- select count(distinct(name)) from subway.hospital; 32
 -- select count(distinct(stay)) from subway.covid; 11
 ```
-문득, 이전 B2를 진행하며 포기했던 fk에 대해 다시 고민해보았어요. 사실, 알고보니 covid.hospital_id와 hospital.id는 같은 값을 나타내지만 서로 다른 타입을 갖고 있었어요. 그래서 covid.hospital_id도 hospital.id와 같이 INT(11)로 타입을 맞춘 뒤, fk를 생성해줬어요. fk를 생성하고 나니 다음과 같이 2번째 Full Table Scan이 Non-Unique Key Lookup으로 변경되었어요.
+카디널리티를 조회하며 문득, 이전 B2를 진행하며 포기했던 fk에 대해 다시 고민해보았어요. 사실, 알고보니 covid.hospital_id와 hospital.id는 같은 값을 나타내지만 서로 다른 타입을 갖고 있었어요. 그래서 covid.hospital_id도 hospital.id와 같이 INT(11)로 타입을 맞춘 뒤, fk를 생성해줬어요. fk를 생성하고 나니 다음과 같이 2번째 Full Table Scan이 Non-Unique Key Lookup으로 변경되었어요.
 
   <img src="/images/b4-1.png" width="900"/>
 
@@ -341,7 +341,7 @@ group by p.exercise;
 * Duration: 0.127sec
 
 #### After
-이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았다. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했다. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았다. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았다.
+이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았어요. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했어요. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았어요. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았어요. 이 문제를 통해 B4에서도 복합 인덱스를 적용해주면 더 개선될 수 있겠다는 생각이 들었어요 ㅎㅎ 에어는 어떻게 요구사항을 만족하셨나 궁금하네요.
 
  <img src="/images/b5.png" width="900"/>
 

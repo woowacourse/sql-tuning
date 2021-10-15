@@ -207,3 +207,96 @@ CREATE INDEX idx_사원출입기록_사원번호 ON 사원출입기록 (사원�
 이에 따라 결과 조회 속도가 `0.0031 sec`로 개선되었다.
 
 <br>
+
+## B. 인덱스 설계
+
+> 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+
+## B-1. [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+
+### 쿼리 작성
+```sql
+SELECT
+	hobby,
+    ROUND(COUNT(hobby) / total.hobby_count * 100, 1) AS percent
+FROM
+	programmer
+    JOIN (
+		SELECT
+			COUNT(hobby) AS hobby_count
+		FROM
+			programmer
+    ) AS total
+GROUP BY
+	hobby,
+    hobby_count
+;
+```
+```
+# hobby, percent
+'No', '19.2'
+'Yes', '80.8'
+
+2.660 sec
+```
+
+서브쿼리를 이용해 프로그래머들의 전체 프로그래밍 취미 응답 개수를 카운팅하고, 
+YES/NO로 나누어진 취미 응답을 전체 개수로 나눈 뒤 x100, ROUND 함수를 이용해 소수점 1자리까지 반올림했다.
+
+### 쿼리 성능 최적화
+![image](https://user-images.githubusercontent.com/37354145/137465396-2d6a6a9b-f916-4695-a417-2b51c8689b32.png)
+
+전체 프로그래머들의 응답 개수를 구해야하기 때문에 programmer 테이블의 풀 스캔이 발생하는 건 어쩔 수 없다고 생각했다. 
+결국 관건은 hobby 내용에 대한 것인데, hobby 내용에 대한 인덱싱을 진행하면 속도가 크게 개선될 것으로 예측했다.
+
+```sql
+CREATE INDEX `idx_programmer_hobby` ON `subway`.`programmer` (hobby);
+```
+```
+0.084 sec
+```
+
+또한 [MySQL 8.0 문서](https://dev.mysql.com/doc/refman/8.0/en/primary-key-optimization.html#:~:text=It%20has%20an%20associated%20index%2C%20for%20fast%20query%20performance)를 참고해보니 PK 설정을 통해 성능 개선이 이루어질 수도 있다는 것 같아 PK가 부여되어 있지 않은 모든 테이블에 PK를 부여했다.
+
+```sql
+ALTER TABLE 
+	`subway`.`programmer` 
+CHANGE COLUMN 
+	`id` `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+	ADD PRIMARY KEY (`id`)
+;
+```
+```
+0.051 sec
+```
+
+실제로 성능 개선이 일어났다!
+
+![image](https://user-images.githubusercontent.com/37354145/137471646-02097488-128e-4d77-85ad-4db209e84022.png)
+
+그러나 PK를 부여한 이후 programmer 테이블 스캔시 row 개수가 71,000개에서 77,000개로 증가했다. 
+'왜 증가한 것인지?', 'row 개수 증가에 따라 query cost가 증가했음에도 속도는 더 빨라진 이유가 무엇인지?'
+는 조사가 더 필요할 것 같다.
+
+### cross join 제거
+인비로부터 ['ON 조건 없이 JOIN을 수행할 경우 CROSS JOIN이 된다'](https://stackoverflow.com/questions/16470942/how-to-use-mysql-join-without-on-condition/16471286) 라는 이야기를 듣고 
+CROSS JOIN을 제거하도록 쿼리를 수정해보았다.
+
+```sql
+SELECT
+	hobby,
+    ROUND(COUNT(hobby) / (SELECT count(*) FROM .programmer) * 100, 1) AS percent
+FROM
+	programmer
+GROUP BY
+	hobby
+;
+```
+```
+0.051 sec
+```
+![image](https://user-images.githubusercontent.com/37354145/137477321-3fe6d945-1916-4cb4-a6e7-1a8ec883befa.png)
+
+duration에는 드라마틱한 변화가 없었지만, 그래프가 조금 더 간결해졌다!
+
+<br>

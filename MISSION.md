@@ -90,9 +90,53 @@ order by
 - **실행 계획도 인덱스를 사용하는 방식으로 변경되었어요**
     - ![](./image/b-1-execution-plan.PNG)
 
-#### [프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)]
+#### [2. 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)]
+- **PK 부터 추가해볼게요**
+    - PK가 Unique Key Lookup 이라 더 빠른걸 깜빡했어요. 
+    - 모든 인덱스를 폐기하고 PK를 다음과 같이 추가했어요
+    ```mysql
+    alter table covid add constraint primary key(id);
+    alter table programmer add constraint primary key(id);
+    alter table hospital add constraint primary key(id);
+    ```
 
-#### [프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)]
+- **다음과 같이 쿼리를 작생했어요**
+    ```mysql
+    select shortenCovid.id AS `covid.id`, hospital.name AS `hospital.name`
+    from hospital
+        join (select hospital_id, id from covid where programmer_id > 0) AS shortenCovid  
+            on hospital.id = shortenCovid.hospital_id;   
+    ```
+
+- **다음과 같은 인덱스를 추가했어요**
+    ``` mysql
+    create index `programmer_id_hospital_id` on covid(`programmer_id`, `hospital_id`);
+    ```
+    - 실행계획은 다음과 같아요
+        - ![](./image/b-2-after-index.PNG) 
+    - 다음과 같은 결과가 나왔어요. duration_time이 0.000sec에요. 
+        - (네트워크와 관련한 fetch time이 100ms 이하로 떨어져야 하는줄 알았답니다ㅜㅜ)
+        - ![](./image/b-2-result.PNG)   
+
+#### [3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)]
+- **다음과 같이 쿼리를 작성했어요**
+    - 앞서 b-2에서 걸어둔 테이블의 pk는 유효해요
+    ```mysql    
+    select covid.id AS `covid.id`, hospital.name AS `hospital.name`, junior_programmer.hobby AS `user.Hobby`, junior_programmer.dev_type AS `user.DevType`, junior_programmer.years_coding AS `user.YearsCoding`
+        from (select id, hobby, dev_type, years_coding
+            from programmer
+            where (student like "Yes%" and hobby = "Yes") or years_coding = "0-2 years") AS junior_programmer
+        join covid
+            on junior_programmer.id = covid.programmer_id
+        join hospital
+            on covid.hospital_id = hospital.id;
+    ```
+    - 대략 0.016sec 가 소요되어요
+        - ![](./image/b-3-before-index.PNG)
+    - 실행 계획은 다음과 같아요
+        - ![](./image/b-3-before-execution-plan.PNG)
+
+- **시간이 많이 소요되지 않았다고 판단해, 인덱스는 걸지 않기로 했어요**
 
 #### [서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)]
 

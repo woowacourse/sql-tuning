@@ -34,7 +34,7 @@ FROM
 -- 프로그래머별로 해당하는 병원 이름을 반환
 -- 인덱스 생성
 CREATE UNIQUE INDEX `idx_covid_id`  ON `subway`.`covid` (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
-CREATE UNIQUE INDEX `idx_programmer_id` ON programmer (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
+CREATE UNIQUE INDEX `idx_programmer_id` ON `subway`.`programmer` (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
 ALTER TABLE covid ADD FOREIGN KEY(member_id) REFERENCES member(id);
 ALTER TABLE covid ADD FOREIGN KEY(programmer_id) REFERENCES programmer(id);
 ALTER TABLE covid MODIFY id bigint(20);
@@ -45,3 +45,15 @@ SELECT covid.id, hospital.name
     JOIN programmer ON covid.programmer_id = programmer.id
     JOIN hospital ON covid.hospital_id = hospital.id;
 -- 0.0056 sec
+
+CREATE INDEX `idx_programmer_hobby_student`  ON `subway`.`programmer` (hobby, student) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+CREATE INDEX `idx_programmer_student_years_coding_prof`  ON `subway`.`programmer` (student, years_coding_prof) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+
+
+SELECT programmer.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding FROM programmer
+  JOIN covid ON covid.programmer_id = programmer.id
+  JOIN hospital ON hospital.id = covid.hospital_id
+  WHERE programmer.hobby = 'yes'
+    AND (programmer.years_coding_prof = '0-2 years' OR programmer.student >= 'Yes, full-time')
+ORDER BY programmer.member_id;
+-- 0.017 sec

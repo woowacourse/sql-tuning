@@ -29,3 +29,16 @@ select
 from 
 	(SELECT hobby, COUNT(hobby) as count FROM subway.programmer group by hobby) as stat
 -- 0.044 sec
+
+-- 프로그래머별로 해당하는 병원 이름을 반환
+-- 인덱스 생성
+CREATE UNIQUE INDEX `idx_covid_id`  ON `subway`.`covid` (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
+CREATE UNIQUE INDEX `idx_programmer_id` ON programmer (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
+alter table covid add foreign key(member_id) references member(id);
+alter table covid add foreign key(programmer_id) references programmer(id);
+alter table covid modify id bigint(20);
+alter table covid add foreign key(hospital_id) references hospital(id);
+
+SELECT covid.id, hospital.name FROM covid
+JOIN programmer on covid.programmer_id = programmer.id
+JOIN hospital on covid.hospital_id = hospital.id;

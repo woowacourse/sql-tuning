@@ -62,3 +62,18 @@ SELECT programmer.id, hospital.name, programmer.hobby, programmer.dev_type, prog
     WHERE programmer.hobby = 'yes'
       AND (programmer.years_coding_prof = '0-2 years' OR programmer.student >= 'Yes, full-time');
 -- 0.025 sec
+
+
+-- 4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계
+
+CREATE INDEX `idx_member_age`  ON `subway`.`member` (age) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+-- 인덱스 생성
+
+SELECT covid.stay, COUNT(covid.stay)
+  FROM hospital
+    JOIN covid ON covid.hospital_id = hospital.id
+      JOIN member ON member.id = covid.member_id
+      JOIN programmer ON programmer.id = covid.programmer_id
+  WHERE hospital.name = '서울대병원' AND (member.age > 19 AND member.age < 30) AND programmer.country = 'India'
+GROUP BY covid.stay;
+-- 0.043 sec

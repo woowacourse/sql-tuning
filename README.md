@@ -18,7 +18,31 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
+---
+## A. 미션실행
+```sql
+SELECT a.사원번호, a.이름, a.연봉, a.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분
+FROM ( SELECT 사원.사원번호, 사원.이름, 직급.직급명, 급여.연봉
+	from 부서
+	join 부서관리자 on 부서.부서번호 = 부서관리자.부서번호 and lower(부서.비고) = 'active'
+	join 사원 on 부서관리자.사원번호 = 사원.사원번호 and 부서관리자.종료일자 = '9999-01-01' 	
+	join 직급 on 사원.사원번호 = 직급.사원번호 and 직급.종료일자 = '9999-01-01' 
+	join 급여 on 사원.사원번호 = 급여.사원번호 and 급여.종료일자 = '9999-01-01'
+    ORDER BY 급여.연봉 desc
+	limit 0, 5 ) AS a
+JOIN 사원출입기록
+ON 사원출입기록.사원번호 = a.사원번호 and 사원출입기록.입출입구분 = 'O'
+ORDER BY a.연봉 DESC
+```
 
+### (맥, 인텔칩)
+- 인덱스 안 걸었을 시 
+![image](https://user-images.githubusercontent.com/66905013/137458933-337ddde0-dc71-4197-a79f-777d0804d54e.png)
+
+- 인덱스 설정(사원출입기록.사원번호)
+![image](https://user-images.githubusercontent.com/66905013/137459067-ce586b5b-0c8b-45c9-bb99-a179e6a4093b.png)
+
+---
 ## B. 인덱스 설계
 
 ### * 실습환경 세팅

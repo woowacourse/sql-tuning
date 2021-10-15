@@ -215,7 +215,158 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 > 주어진 데이터셋을 활용하여 조회 결과를 100ms 이하로 반환한다.
 
-- [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+- [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환한다.
+
+<details>
+  <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+  select
+    hobby,
+    round((count(member_id) / (select count(member_id) from programmer where member_id is not null)) * 100, 1) as 'percentage'
+  from
+    programmer
+  where
+    member_id is not null
+  group by
+    hobby
+  order by
+    null;
+  ```
+
+</details>
+
+<details>
+  <summary>실행 결과</summary>
+  
+  #### 소요 시간
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137529337-42f6b5d1-1c74-4b94-a123-38161f28bcda.png">
+  </p>
+
+  #### 테이블 출력
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137529718-b2a57cd5-ceab-4062-8e22-d2e8251bae3c.png">  
+  </p>
+
+  #### 실행 계획
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137529544-39ce68bc-e50f-44c6-be8d-bb91826e6947.png">
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137529464-2ee49e78-75a8-4577-829b-58b6087139cd.png">
+  </p>
+
+</details>
+
+<details>
+  <summary>정리</summary>
+
+  #### 1.
+  먼저, `programmer`에 어떤 인덱스가 있는지 확인했다. 처음에는 아무 인덱스도 없었다.
+
+  ```sql
+  show index from programmer;
+  ```
+  <br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137531335-94b8cbdb-de70-47b6-9401-e89684082a4f.png">  
+  </p>
+
+  #### 2.
+  인덱스를 추가하여 성능 개선을 하기 앞서, 기대하는 결과가 나오는 쿼리를 먼저 작성했다.
+  
+  ```sql
+  select
+    hobby,
+    round((count(member_id) / (select count(member_id) from programmer)) * 100, 1) as 'percentage'
+  from
+    programmer
+  group by
+    hobby
+  order by
+    null;
+  ```
+  <br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137531449-d27172e0-e04b-49b0-8687-bbb9986c78c6.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137531515-04c1a93d-765d-45b2-911b-5202c693a20c.png">  
+  </p>
+
+  #### 3.
+  다음으로, 인덱스를 추가했다.<br/>
+  커버링 인덱스를 사용해서 성능을 개선시키고 싶었다.<br/>
+  인덱스를 어떻게 설계해야 할까 고민하다, `member_id`가 `null`인 레코드가 몇 개 있는 것을 발견했다.<br/>
+  이 컬럼과 `hobby` 컬럼을 묶어 인덱스를 추가하면,<br/>
+  `where`와 `group by`에 적절하게 활용해서 커버링 인덱스로 쓸 수 있을 것이라 생각했다.<br/>
+
+  ```sql
+  create index `idx_member_id_hobby` on programmer (member_id, hobby);
+
+  select
+    hobby,
+    round((count(member_id) / (select count(member_id) from programmer where member_id is not null)) * 100, 1) as 'percentage'
+  from
+    programmer
+  where
+    member_id is not null
+  group by
+    hobby
+  order by
+    null;
+  ```
+
+  #### 4.
+  예상대로 커버링 인덱스로 활용됐다.<br/>
+  인덱스가 없을 때보다는 성능이 많이 개선됐다. 그러나, 요구사항인 100ms 이하의 쿼리는 아니었다.<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137531740-3ede6a8e-e2d3-428e-b4b8-b27ccd54c793.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137532283-6ffcbebc-a7ff-414b-a9e6-68dd5a15bca1.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137531815-0ff9594e-3b2c-4a9a-9400-5a871aa1129f.png">  
+  </p>
+  
+  #### 5.
+  어떻게 성능을 더 높일 수 있을까 고민하다, `programmer`에 PK가 없다는 걸 깨달았다.<br/>
+  혹시나 싶어서 테이블에 PK를 지정했다.<br/>
+  결과적으로 100ms 이하의 쿼리를 만들 수 있었다.<br/>
+
+  ```sql
+  alter table programmer
+  add primary key(id);
+  ```
+  <br/>
+ 
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137529337-42f6b5d1-1c74-4b94-a123-38161f28bcda.png">
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137532093-6b1380e2-3560-48f0-bff3-d8a19151e4cd.png">  
+  </p>
+
+</details>
+
+<details>
+  <summary>질문</summary>
+  <br/>
+
+  커버링 인덱스로 성능을 개선시키는 건 이해했는데, PK를 지정했을 때 성능이 더 개선되는 이유가 궁금합니다.<br/>
+  실행 계획을 보면, PK를 추가했을 때 읽는 레코드 양도 늘어나는데 말이죠 🤔<br/>
+  검프는 왜 이런지 알고 있나요??<br/>
+
+</details>
+
+<br/>
+
 - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)

@@ -53,7 +53,6 @@ inner join
 	order by 급여.연봉 desc
 	limit 5) as 상위연봉부서관리자
 on 상위연봉부서관리자.사원번호 = 사원.사원번호
-
 inner join 
     사원출입기록 on 사원.사원번호 = 사원출입기록.사원번호 and 사원출입기록.입출입구분 = 'O'
 inner join 
@@ -144,13 +143,37 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 ### * 요구사항
 
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
-
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
-        ```sql
+    - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+       
+	**조회 쿼리**
+	```sql
 	SELECT hobby, (COUNT(hobby) / (SELECT COUNT(hobby) FROM programmer)) * 100 AS percentage 
 	FROM programmer 
 	GROUP BY hobby;
 	```
+
+	**인덱스 적용 전**
+
+	<img width="179" alt="스크린샷 2021-10-15 오후 9 32 17" src="https://user-images.githubusercontent.com/56679885/137487258-8f10adf0-8143-4f62-94a1-b9f73a629772.png">
+	
+	<img width="286" alt="스크린샷 2021-10-15 오후 9 29 41" src="https://user-images.githubusercontent.com/56679885/137486885-5aa82643-7bd6-4f2a-ad1a-a1da8605492b.png">
+	
+	<img width="987" alt="스크린샷 2021-10-15 오후 9 30 00" src="https://user-images.githubusercontent.com/56679885/137486922-c15080ef-abc9-4697-b858-3658c84088ec.png">
+	
+	**인덱스 생성**
+
+	```sql
+	create index I_hobby on programmer (hobby);
+	```
+
+	**인덱스 적용 후**
+	
+	<img width="176" alt="스크린샷 2021-10-15 오후 9 32 43" src="https://user-images.githubusercontent.com/56679885/137487325-e0e01477-c3d6-4239-931f-e89f558b9f08.png">
+	
+	<img width="276" alt="스크린샷 2021-10-15 오후 9 31 04" src="https://user-images.githubusercontent.com/56679885/137487065-6db5fcd1-fe08-4c6f-8ab4-e5fafb6ce78d.png">
+	
+	<img width="1010" alt="스크린샷 2021-10-15 오후 9 31 37" src="https://user-images.githubusercontent.com/56679885/137487153-960b931d-d1a7-4b1b-9b3a-72abeda957a3.png">
+
 
     - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 

@@ -19,7 +19,7 @@ CREATE INDEX idx_사원번호 ON 사원출입기록 (사원번호);
 
 
 -- B
--- Coding As A Hobby
+-- 1. Coding As A Hobby
 
 CREATE INDEX `idx_programmer_hobby` ON `subway`.`programmer` (hobby) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
 -- 인덱스 생성
@@ -31,14 +31,16 @@ FROM
 	(SELECT hobby, COUNT(hobby) AS count FROM subway.programmer GROUP BY hobby) AS stat
 -- 0.044 sec
 
--- 프로그래머별로 해당하는 병원 이름을 반환
--- 인덱스 생성
+
+-- 2. 프로그래머별로 해당하는 병원 이름을 반환
+
 CREATE UNIQUE INDEX `idx_covid_id`  ON `subway`.`covid` (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
 CREATE UNIQUE INDEX `idx_programmer_id` ON `subway`.`programmer` (id) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT;
 ALTER TABLE covid ADD FOREIGN KEY(member_id) REFERENCES member(id);
 ALTER TABLE covid ADD FOREIGN KEY(programmer_id) REFERENCES programmer(id);
 ALTER TABLE covid MODIFY id bigint(20);
 ALTER TABLE covid ADD FOREIGN KEY(hospital_id) REFERENCES hospital(id);
+-- 인덱스 생성
 
 SELECT covid.id, hospital.name
   FROM covid
@@ -46,14 +48,17 @@ SELECT covid.id, hospital.name
     JOIN hospital ON covid.hospital_id = hospital.id;
 -- 0.0056 sec
 
+
+-- 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬
+
 CREATE INDEX `idx_programmer_hobby_student`  ON `subway`.`programmer` (hobby, student) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
 CREATE INDEX `idx_programmer_student_years_coding_prof`  ON `subway`.`programmer` (student, years_coding_prof) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+-- 인덱스 생성
 
-
-SELECT programmer.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding FROM programmer
-  JOIN covid ON covid.programmer_id = programmer.id
-  JOIN hospital ON hospital.id = covid.hospital_id
-  WHERE programmer.hobby = 'yes'
-    AND (programmer.years_coding_prof = '0-2 years' OR programmer.student >= 'Yes, full-time')
-ORDER BY programmer.member_id;
--- 0.017 sec
+SELECT programmer.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding 
+  FROM programmer
+    JOIN covid ON covid.programmer_id = programmer.id
+    JOIN hospital ON hospital.id = covid.hospital_id
+    WHERE programmer.hobby = 'yes'
+      AND (programmer.years_coding_prof = '0-2 years' OR programmer.student >= 'Yes, full-time');
+-- 0.025 sec

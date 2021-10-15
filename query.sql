@@ -77,3 +77,20 @@ SELECT covid.stay, COUNT(covid.stay)
   WHERE hospital.name = '서울대병원' AND (member.age > 19 AND member.age < 30) AND programmer.country = 'India'
 GROUP BY covid.stay;
 -- 0.043 sec
+
+
+-- 5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계
+
+ALTER TABLE programmer MODIFY exercise varchar(32);
+-- 칼럼 타입 변경
+CREATE INDEX `idx_programmer_exercise`  ON `subway`.`programmer` (exercise) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+-- 인덱스 생성
+
+SELECT programmer.exercise, COUNT(programmer.exercise)
+  FROM hospital
+    JOIN covid ON covid.hospital_id = hospital.id
+      JOIN member ON member.id = covid.member_id
+      JOIN programmer ON programmer.id = covid.programmer_id
+  WHERE hospital.name = '서울대병원' AND (member.age > 29 AND member.age < 40)
+GROUP BY programmer.exercise;
+-- 0.082 sec

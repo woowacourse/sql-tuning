@@ -90,7 +90,7 @@ order by 연봉 desc
 * 실행 결과  
   <img src="/images/a1.png" width="900"/>
 
-* 쿼리에 대한 설명  
+#### 쿼리에 대한 설명  
 우선, 조회할 컬럼들을 먼저 살펴보았어요. 사원번호, 이름, 연봉, 직급명은 연봉 TOP 5 테이블을 만들며 뽑아낼 수 있는 값이라는 생각이 들었어요.
 그래서 크게 연봉상위5위 테이블과, 사원출입기록 두 테이블을 가장 겉 쿼리에서 이용하기로 생각했어요.
 내부 연봉상위5위 테이블을 만들기 위해 from 절에 서브쿼리를 사용했어요. 서브쿼린 내부에서는 모든 테이블과 연관관계를 가진 부서관리자 테이블에 각 테이블들을
@@ -114,7 +114,7 @@ CREATE INDEX I_사원번호 ON tuning.사원출입기록 (사원번호);
 
 * EC2에 DB를 올려놓고 연결해서 사용하다보니 네트워크에 따라서 Duration이 일정하지 않더라구요.. 😞  
 
-* 인덱스 설정에 대한 이유  
+#### 인덱스 설정에 대한 이유  
 사원출입기록에 대한 Full Table Scan을 최적화하기위해 사원출입기록 테이블의 인덱스 정보를 확인했어요. (순번, 사원번호) 순으로는 인덱스가 걸려있었지만, 사원번호 단일로는 생성되어있지 않았어요. 조건절에서 사원번호를 사용하기에 사원번호 단일 인덱스를 생성해주었어요.
 
 [질문]  
@@ -146,13 +146,36 @@ order by percentage desc;
   <img src="/images/b1.png" width="900"/>
 
 * Duration: 0.051sec  
-* 쿼리 및 인덱스에 대한 이유 + [질문]  
-우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 이번에는 programmer.id에 PK를 지정하고, hobby에 인덱스를 추가로 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블을 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보여요. count를 대체할 수 있는 방법이 있을까요?
+#### 쿼리 및 인덱스에 대한 이유 + [질문]  
+우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 이번에는 programmer.id에 PK를 지정하고, hobby에 인덱스를 추가로 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블을 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보이네요.
 
 
 ### B2 - 프로그래머별로 해당하는 병원 이름을 반환하세요.
 * (covid.id, hospital.name)  
 
+```sql
+select c.programmer_id as programmer, h.name as hospital_name
+from subway.hospital h
+       inner join subway.covid c on h.id = c.hospital_id
+       inner join subway.programmer p on c.programmer_id = p.id;
+```
+* 실행 결과
+
+  <img src="/images/b2.png" width="900"/>
+  
+
+* Duration: 0.023sec   
+
+#### 쿼리 및 인덱스에 대한 이유
+이번에는 인덱스를 따로 걸지 않았어요. pk로만 해결했습니다.
+
+covid 행 총 수 -> 318325
+hospital 행 총 수 -> 32
+programmer 행 총 수 -> 98855
+
+covid 테이블을 통해 programmer_id 및 hospital_id에 모두 접근할 수 있기에, covid를 기준으로 join을 수행했었어요. 하지만 더 적은 행의 개수를 가진 
+hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상 다름없는 결과가 나왔어요. 결국엔 3 테이블을 모두 inner join 하는 것이다 보니 동일하게 동작하는 것 같아요. (뇌피셜)
+추가적으로 covid.programmer_id, covid.hospital_id에 fk를 설정해주었어요. 하지만 오히려 fk 설정 전 Unique Key Lookup을 도는 게 더 나은 것 같아서, fk는 우선 지웠어요. 사실 하면서도 옳은 방향으로 하고있는게 맞는지 의문이 드네요..
 
 ### B3 - 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
 * (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)  

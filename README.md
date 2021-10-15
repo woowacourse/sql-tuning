@@ -232,5 +232,42 @@ Programmer.id가 이미 select절에서 사용되고 있고, programmer.id는 pk
 ### B4 - 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
 * (covid.Stay)  
 
+#### Before
+```sql
+select c.stay, count(c.id)
+from subway.covid c
+       inner join subway.hospital h on c.hospital_id = h.id
+       inner join
+     (
+       select p.id
+       from subway.programmer p
+              inner join subway.member m on p.member_id = m.id
+       where p.country = 'India'
+         and m.age between 20 and 29
+     )
+       as mp
+     on c.programmer_id = mp.id
+where h.name = '서울대병원'
+group by c.stay;
+```
+* Duration: 0.142sec  
+
+#### After
+먼저, 조건절에 걸린 값들에 대한 카디널리티를 조회해보았어요.
+```sql
+-- select count(distinct(country)) from subway.programmer; 184
+-- select count(distinct(age)) from subway.member; 43
+-- select count(distinct(name)) from subway.hospital; 32
+-- select count(distinct(stay)) from subway.covid; 11
+```
+문득, 이전 B2를 진행하며 포기했던 fk에 대해 다시 고민해보았어요. 사실, 알고보니 covid.hospital_id와 hospital.id는 같은 값을 나타내지만 서로 다른 타입을 갖고 있었어요. 그래서 covid.hospital_id도 hospital.id와 같이 INT(11)로 타입을 맞춘 뒤, fk를 생성해줬어요. fk를 생성하고 나니 다음과 같이 2번째 Full Table Scan이 Non-Unique Key Lookup으로 변경되었어요.
+
+  <img src="/images/b4-1.png" width="900"/>
+
+추가적으로 programmer와 member도 fk를 형성해주었어요. 또한 covid.stay도 카디널리티는 낮으나 group by 절에서 이용되고 있기에 인덱스로 추가해주었어요. 이후, Duration이 **0.052sec**으로 줄었어요. hospital.name까지 인덱스를 걸면, 성능이 더 개선될 것 같지만 TEXT 필드를 굳이 varchar로 변경하고 싶지 않고, 지금 수준도 만족할만하기에 굳이 추가하지 않았어요.
+
+ <img src="/images/b4-2.png" width="900"/>
+* Duration: 0.052sec  
+
 ### B5 - 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
 * (user.Exercise)  

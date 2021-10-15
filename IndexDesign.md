@@ -7,6 +7,7 @@ create index hobby_idx on programmer(hobby);
 select hobby, count(*) / (select count(*) from programmer) "Coding as a Hobby" from programmer group by hobby;  
 
 ![문제 1 결과](./Index-Design-One-Result.png)  
+<br>
 ![문제 1 분석](./Index-Design-One-Analysis.png)  
 
 ## 각 프로그래머별로 해당하는 병원 이름을 반환하세요
@@ -17,6 +18,7 @@ create index idx_covid on covid(programmer_id, hospital_id);
 select covid.programmer_id, hospital.name from covid, hospital where covid.hospital_id = hospital.id;  
 
 ![문제 2 결과](./Index-Design-Two-Result.png)  
+<br>
 ![문제 2 분석](./Index-Design-Two-Analysis.png)  
 
 ## 프로그래밍이 취미인 학생 혹은 주니어(0~2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.  
@@ -30,6 +32,7 @@ select d.id, h.name, d.hobby, d.dev_type, d.years_coding from
 (select covid.programmer_id id, hospital.name name from covid, hospital where covid.hospital_id = hospital.id) h where d.id = h.id;  
 
 ![문제 3 결과](./Index-Design-Three-Result.png)  
+<br>
 ![문제 3 분석](./Index-Design-Three-Analysis.png)  
 
 
@@ -51,6 +54,7 @@ select h.stay, count(*) from
 where d.id = h.id group by h.stay;  
 
 ![문제 4 결과](./Index-Design-Four-Result.png)  
+<br>
 ![문제 4 분석](./Index-Design-Four-Analysis.png)  
 
 
@@ -68,4 +72,5 @@ join (select c.member_id id, c.stay stay from covid c, (select id from hospital 
 where c.hospital_id = h.id) hp on d.id = hp.id group by d.exercise;  
 
 ![문제 5 결과](./Index-Design-Five-Result.png)  
+<br>
 ![문제 5 분석](./Index-Design-Five-Analysis.png)  

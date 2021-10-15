@@ -197,13 +197,13 @@ GROUP BY covid.stay
 CREATE INDEX `idx_programmer_country` ON subway.programmer (country);
 ```
 
-![image-20211015032336339](/Users/idawon/Library/Application Support/typora-user-images/image-20211015032336339.png)
+![image](https://user-images.githubusercontent.com/18106839/137444073-5e20a91e-01b6-49e3-9b3e-6089e82046ab.png)
 
 ### 실행계획
 
-![image-20211015020116357](/Users/idawon/Library/Application Support/typora-user-images/image-20211015020116357.png)
+![image](https://user-images.githubusercontent.com/18106839/137444103-aa2c27e9-10cc-425e-a4ce-31ee43231655.png)
 
-![image-20211015033150082](/Users/idawon/Library/Application Support/typora-user-images/image-20211015033150082.png)
+![image](https://user-images.githubusercontent.com/18106839/137444131-9acb9fc6-8b27-4ae1-ae54-174a973e72e6.png)
 
 
 
@@ -219,15 +219,15 @@ CREATE INDEX `idx_programmer_country` ON subway.programmer (country);
  CREATE INDEX `idx_programmer_country` ON subway.programmer (id, country);
 ````
 
-![image-20211015033430951](/Users/idawon/Library/Application Support/typora-user-images/image-20211015033430951.png)
+![image](https://user-images.githubusercontent.com/18106839/137444162-1a6b38a9-e862-453f-834e-40ec99d5f75f.png)
 
 
 
 ### 실행계획
 
-![image-20211015032841358](/Users/idawon/Library/Application Support/typora-user-images/image-20211015032841358.png)
+![image](https://user-images.githubusercontent.com/18106839/137444196-a36f2ce0-3a0b-4e68-956c-3c8922e08de6.png)
 
-![image-20211015033025806](/Users/idawon/Library/Application Support/typora-user-images/image-20211015033025806.png)
+![image](https://user-images.githubusercontent.com/18106839/137444226-a9cacd64-9da9-4cbc-9e02-65dde4cc7269.png)
 
 - Non-Unique Key LookUp이 Index Range Scan으로 변경되었고 nested loop가 block nested loop으로 변경되었다. 
 - rows는 더 늘었다.
@@ -251,13 +251,13 @@ CREATE INDEX `idx_programmer_country` ON subway.programmer (country);
 SELECT programmer.exercise, count(programmer_id)FROM covidJOIN member ON covid.member_id = member.id JOIN programmer ON covid.programmer_id = programmer.idJOIN hospital ON covid.hospital_id = hospital.idWHERE hospital.name = '서울대병원' AND member.age BETWEEN 30 AND 39GROUP BY programmer.exercise
 ```
 
-![image-20211015034452206](/Users/idawon/Library/Application Support/typora-user-images/image-20211015034452206.png)
+![image](https://user-images.githubusercontent.com/18106839/137444264-0260d13b-015c-4cba-8bd9-1ba2c4e9524c.png)
 
 ### 실행계획
 
-![image-20211015034422957](/Users/idawon/Library/Application Support/typora-user-images/image-20211015034422957.png)
+![image](https://user-images.githubusercontent.com/18106839/137444293-117cebfd-d5cd-402c-a1a4-320466d71502.png)
 
-![image-20211015034529181](/Users/idawon/Library/Application Support/typora-user-images/image-20211015034529181.png)
+![image](https://user-images.githubusercontent.com/18106839/137444315-f4e0a2a2-a8b9-499c-b203-f9c31d86c267.png)
 
 
 
@@ -270,13 +270,13 @@ SELECT programmer.exercise, count(programmer_id)FROM covidJOIN member ON covid.m
 CREATE INDEX `idx_covid_hospitalId` ON subway.covid (hospital_id);
 ```
 
-![image-20211015035134261](/Users/idawon/Library/Application Support/typora-user-images/image-20211015035134261.png)
+![image](https://user-images.githubusercontent.com/18106839/137444345-ed6643c1-2381-4a84-90c4-6c884f7d0b55.png)
 
 ### 실행계획
 
-![image-20211015035202903](/Users/idawon/Library/Application Support/typora-user-images/image-20211015035202903.png)
+![image](https://user-images.githubusercontent.com/18106839/137444361-7d463b53-5104-4577-b02d-0d6a46308c8b.png)
 
-![image-20211015035229371](/Users/idawon/Library/Application Support/typora-user-images/image-20211015035229371.png)
+![image](https://user-images.githubusercontent.com/18106839/137444378-9a1ea965-5a1c-405d-94c7-63134d15e986.png)
 
 
 

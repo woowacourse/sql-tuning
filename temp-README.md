@@ -20,6 +20,17 @@
 ### 실습 1번
 200개 이상 팔린 상품명과 그 수량을 수량 기준 내림차순으로 보여주세요.
 
+```sql
+select p.ProductID as '상품아이디', p.ProductName as '상품이름', sum(od.Quantity) as '총수량'
+from Products p, OrderDetails od
+where p.ProductID = od.ProductID
+group by p.ProductID
+having `총수량` >= 200
+order by `총수량` desc;
+```
+
+* where 절에 equal은 `==`가 아니라 `=`다. Thanks to 인비
+
 ### 실습 2번
 많이 주문한 순으로 고객 리스트(ID, 고객명)를 구해주세요. (고객별 구매한 물품 총 갯수)
 

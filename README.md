@@ -7,9 +7,11 @@
     * [1번](#실습-1번)
     * [2번](#실습-2번)
     * [3번](#실습-3번)
+* [ERD for A](#erd-of-a)
 * [A. 쿼리 연습](#a-쿼리-연습)
   * [A1 - 쿼리 작성만으로 1s 이하로 반환한다.](#a1---쿼리-작성만으로-1s-이하로-반환한다)
   * [A2 - 인덱스 설정을 추가하여 50 ms 이하로 반환한다.](#a2---인덱스-설정을-추가하여-50-ms-이하로-반환한다)
+* [ERD of B](#erd-of-b)
 * [B. 인덱스 설계](#b-인덱스-설계)
     * [B1 - Coding as a Hobby 와 같은 결과를 반환하세요.](#b1---coding-as-a-hobby-와-같은-결과를-반환하세요)
     * [B2 - 프로그래머별로 해당하는 병원 이름을 반환하세요.](#b2---프로그래머별로-해당하는-병원-이름을-반환하세요)
@@ -58,6 +60,11 @@ and od.ProductID = p.ProductID
 group by c.CustomerID
 order by `지출금액` desc;
 ```
+
+## ERD of A
+  <img src="/images/erd-of-a.png" width="1000"/>
+
+* [reverse engineering을 이용해 mysqlworkbench erd 생성하기](https://dololak.tistory.com/457)
 
 ## A. 쿼리 연습
 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.  
@@ -120,6 +127,9 @@ CREATE INDEX I_사원번호 ON tuning.사원출입기록 (사원번호);
 [질문]  
 1. 입출입구분의 equal 연산자로 한번 거르고, 사원번호도 equal로 거르니 (입출입구분, 사원번호)와 같은 형태로 인덱스를 거는게 더 좋지 않을까? 라는 생각이
 들었어요. 근데 별 차이가 없더라구요? 이유가 뭘까요?
+
+## ERD of B
+  <img src="/images/erd-of-b.png" width="1000"/>
 
 ## B. 인덱스 설계
 * 조건  
@@ -271,3 +281,27 @@ group by c.stay;
 
 ### B5 - 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
 * (user.Exercise)  
+
+#### Before
+```sql
+select p.exercise, count(p.id) as number_of_patient
+from subway.programmer p 
+inner join subway.member m on p.member_id = m.id
+inner join
+	(
+	select c.programmer_id as id
+	from subway.covid c
+	inner join subway.hospital h on c.hospital_id = h.id
+	where h.name = '서울대병원'
+	) as cp
+on p.id = cp.id
+where m.age between 30 and 39
+group by p.exercise;
+```
+* Duration: 0.127sec
+
+#### After
+이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았다. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했다. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았다. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았다.
+
+ <img src="/images/b5.png" width="900"/>
+* Duration: 0.086sec  

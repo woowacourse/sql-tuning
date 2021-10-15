@@ -22,7 +22,9 @@ select e.사원번호, f.이름, f.연봉, f.직급명, e.지역, e.입출입시
 + 실행 계획
   ![img_1.png](img_1.png)
 + 실행 결과 / 성능
+  <br>
   ![img.png](img.png)
+  <br>
   ![img_2.png](img_2.png)
 
 ## B. 인덱스 설계
@@ -37,7 +39,9 @@ select (select count(*) from programmer where hobby = 'yes')/count(*) * 100 as y
 + 실행 계획
   ![img_4.png](img_4.png)
 + 실행 결과 / 성능
+  <br>
   ![img_3.png](img_3.png)
+  <br>
   ![img_5.png](img_5.png)
   
 ### 프로그래머 별로 해당하는 병원
@@ -51,7 +55,9 @@ SELECT c.programmer_id, h.name FROM subway.covid as c
 + 실행 계획
   ![img_6.png](img_6.png)
 + 실행 결과 / 성능
+  <br>
   ![img_8.png](img_8.png)
+  <br>
   ![img_7.png](img_7.png)
   
 ### 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
@@ -68,7 +74,9 @@ SELECT c.id, h.name, p.hobby, p.dev_type, p.years_coding FROM covid as c
 + 실행 계획
   ![img_9.png](img_9.png)
 + 실행 결과 / 성능
+  <br>
   ![img_11.png](img_11.png)
+  <br>
   ![img_10.png](img_10.png)
   
 ### 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
@@ -89,7 +97,9 @@ select c.stay, count(*) FROM subway.covid as c
 + 실행 계획
   ![img_12.png](img_12.png)
 + 실행 결과 / 성능
+  <br>
   ![img_13.png](img_13.png)
+  <br>
   ![img_14.png](img_14.png)
 
 ### 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요
@@ -109,6 +119,8 @@ SELECT p.exercise, count(m.age) FROM subway.covid as c
 + 실행 계획
   ![img_16.png](img_16.png)
 + 실행 결과 / 성능
+  <br>
   ![img_17.png](img_17.png)
+  <br>
   ![img_18.png](img_18.png)
 

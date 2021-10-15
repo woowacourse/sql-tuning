@@ -639,3 +639,59 @@ GROUP BY
 편차가 큰 duration 결과를 보여주었다. 추가적인 고민이 필요할 것 같다.
 
 <br>
+
+## B-5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요.
+### 쿼리 작성
+```sql
+SELECT
+	programmer.exercise AS exercise,
+    COUNT(programmer.exercise) AS count_of_exercise
+FROM
+	(
+		SELECT 
+            hospital_id,
+            member_id,
+            programmer_id
+		FROM
+			covid
+    ) AS covid
+    JOIN (
+		SELECT
+			id
+		FROM
+			hospital
+		WHERE
+			name = '서울대병원'
+    ) AS seoul_national_univ_hospital ON covid.hospital_id = seoul_national_univ_hospital.id
+    JOIN (
+		SELECT
+			id
+		FROM
+			member
+		WHERE
+			age BETWEEN 30 AND 39
+	) AS thirties ON covid.member_id = thirties.id
+    JOIN (
+		SELECT
+			id,
+            exercise
+		FROM
+			programmer
+    ) AS programmer ON covid.programmer_id = programmer.id
+GROUP BY
+	exercise
+;
+```
+```
+# exercise, count_of_exercise
+'1 - 2 times per week', '171'
+'3 - 4 times per week', '113'
+'Daily or almost every day', '91'
+'I don\'t typically exercise', '223'
+'NA', '219'
+
+0.028 sec
+```
+![image](https://user-images.githubusercontent.com/37354145/137495390-4207f3ee-5fcd-4608-bb16-38da086e367c.png)
+
+이미 B-4 문항을 통해 인덱싱이 진행된 덕분에 빠른 duration 결과를 얻을 수 있었다.

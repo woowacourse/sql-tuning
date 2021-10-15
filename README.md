@@ -169,11 +169,13 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         on covid.programmer_id = programmer.id
         inner join (select id from subway.hospital where name = '서울대병원') as SNU_hospital
         on SNU_hospital.id = covid.hospital_id
-        group by programmer.exercise;
+        group by programmer.exercise
+        order by null;
         ```
 
       - 실행 결과
-        <img width="1229" alt="스크린샷 2021-10-11 오전 2 04 26" src="https://user-images.githubusercontent.com/53412998/136705996-d8eb2b1e-bb4e-4ac1-91a5-9d9ec56b4347.png">
+        <img width="1361" alt="스크린샷 2021-10-15 오후 6 03 49" src="https://user-images.githubusercontent.com/53412998/137462210-bc9e71e9-b34a-40cb-9b0c-7a10b8224741.png">
+
 
 
 <div style="line-height:1em"><br style="clear:both" ></div>

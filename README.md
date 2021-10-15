@@ -169,9 +169,9 @@ from subway.hospital h
 #### 쿼리 및 인덱스에 대한 이유
 이번에는 인덱스를 따로 걸지 않았어요. pk로만 해결했습니다.
 
-covid 행 총 수 -> 318325
-hospital 행 총 수 -> 32
-programmer 행 총 수 -> 98855
+Total number of rows in covid table -> 318325  
+Total number of rows in hospital table -> 32  
+Total number of rows in student table -> 98855  
 
 covid 테이블을 통해 programmer_id 및 hospital_id에 모두 접근할 수 있기에, covid를 기준으로 join을 수행했었어요. 하지만 더 적은 행의 개수를 가진 
 hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상 다름없는 결과가 나왔어요. 결국엔 3 테이블을 모두 inner join 하는 것이다 보니 동일하게 동작하는 것 같아요. (뇌피셜)
@@ -179,6 +179,55 @@ hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상
 
 ### B3 - 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
 * (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)  
+
+우선 이 문제는 씨유께선 어떤 의도인지 모르겠지만 저는 다음과 같이 해석하고 풀이했습니다.
+> 프로그래밍이 취미인 학생 혹은 프로그래밍이 취미인 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.
+
+#### Before
+```sql
+select p.id as programmer, h.name as hospital_name
+from subway.covid c
+       inner join subway.programmer p on c.programmer_id = p.id
+       inner join subway.hospital h on c.hospital_id = h.id
+where p.hobby = 'Yes'
+  and
+  (
+        p.dev_type like '%student%'
+      or
+        p.years_coding = '0-2 years'
+    )
+order by p.id;
+```
+* Duration: 0.994sec  
+개선이 필요하네요. ㅠ
+
+#### After
+```sql
+select p.id as programmer, h.name as hospital_name
+from subway.covid c
+       inner join subway.programmer p on c.programmer_id = p.id
+       inner join subway.hospital h on c.hospital_id = h.id
+where p.hobby = 'Yes'
+  and
+  (
+        p.dev_type like '%student%'
+      or
+        p.years_coding = '0-2 years'
+    );
+```
+
+* 실행 결과
+
+  <img src="/images/b3.png" width="900"/>
+  
+0.994에서 0.048로 개선되었어요.  
+* Duration: 0.048sec
+
+#### 쿼리 및 인덱스에 대한 이유
+Programmer.id가 이미 select절에서 사용되고 있고, programmer.id는 pk이자 인덱스이므로 항상 정렬 상태를 유지해요. 따라서 order by 절을 생략해 불필요한 sort 및 filesort를 줄일 수 있었어요.
+
+[질문]
+* 그럼 이미 p.id로 소트가 된 상태인데, order by 절에 p.id를 명시해주더라도 filesort가 발생하지 않아야하는거 아닐까요? 왜 불필요한 정렬이 발생하는지 혹시 아시나요?
 
 ### B4 - 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
 * (covid.Stay)  

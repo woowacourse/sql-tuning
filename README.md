@@ -44,15 +44,16 @@ order by `상위_연봉_부서관리자`.연봉 desc;
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 - [x] 쿼리 작성만으로 1s 이하로 반환한다.
-<img width="1286" alt="스크린샷 2021-10-10 오후 11 14 25" src="https://user-images.githubusercontent.com/53412998/136699457-8897bee7-835a-45ef-b68e-40d899a51964.png">
+
+  <img width="1392" alt="스크린샷 2021-10-15 오후 6 07 28" src="https://user-images.githubusercontent.com/53412998/137462658-469eeef2-90be-4562-91ae-21c35505a32f.png">
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 - [x] 인덱스 설정을 추가하여 50 ms 이하로 반환한다.
 
-`사원출입기록` 테이블의 `사원번호` 컬럼에 `INDEX`를 설정해 조회 시간을 `0.0025sec(2.5ms)`까지 줄여봤습니다.
-
-<img width="1281" alt="스크린샷 2021-10-10 오후 11 18 32" src="https://user-images.githubusercontent.com/53412998/136699590-67338ed9-3c5e-4c6a-8345-bfc1526cad94.png">
+  `사원출입기록` 테이블의 `사원번호` 컬럼에 `INDEX`를 설정해 조회 시간을 `0.0028sec(2.8ms)`까지 줄여봤습니다.
+  
+  <img width="1402" alt="스크린샷 2021-10-15 오후 6 10 10" src="https://user-images.githubusercontent.com/53412998/137462994-0c0b6d4d-1ebe-437c-8377-cc00f0b40889.png">
 
 <br/>
 

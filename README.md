@@ -75,9 +75,8 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
     
       - 쿼리
         ```sql
-        select hobby, round(count(*) /  all_programmers.total_count * 100,1) as percentage from subway.programmer
-        cross join (select count(*) as total_count from subway.programmer) as all_programmers
-        group by hobby, all_programmers.total_count
+        select hobby, round(count(*) * 100 / (select count(*) from subway.programmer),1) as percentage from subway.programmer
+        group by hobby
         order by null;
         ```
         
@@ -86,7 +85,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         - `hobby` 컬럼에 `INDEX` 설정
         
       - 실행 결과
-        <img width="1329" alt="스크린샷 2021-10-10 오후 11 29 49" src="https://user-images.githubusercontent.com/53412998/136700164-1ca9a123-61fb-449f-9879-833c161a5dfb.png">
+        <img width="1360" alt="스크린샷 2021-10-15 오후 5 48 11" src="https://user-images.githubusercontent.com/53412998/137459882-5f5b6556-9215-4a40-9e6f-4cbc7d1be0aa.png">
 
       
     - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)

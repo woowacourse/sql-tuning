@@ -34,6 +34,15 @@ order by `총수량` desc;
 ### 실습 2번
 많이 주문한 순으로 고객 리스트(ID, 고객명)를 구해주세요. (고객별 구매한 물품 총 갯수)
 
+```sql
+select c.CustomerID as '고객아이디', c.CustomerName as '고객이름', sum(od.Quantity) as '주문량'
+from Orders o, Customers c, OrderDetails od
+where o.CustomerID = c.CustomerID 
+and o.OrderID = od.OrderID
+group by c.CustomerID
+order by `주문량` desc;
+```
+
 ### 실습 3번
 많은 돈을 지출한 순으로 고객 리스트를 구해주세요.
 

@@ -303,8 +303,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
   다음으로, 인덱스를 추가했다.<br/>
   커버링 인덱스를 사용해서 성능을 개선시키고 싶었다.<br/>
   인덱스를 어떻게 설계해야 할까 고민하다, `member_id`가 `null`인 레코드가 몇 개 있는 것을 발견했다.<br/>
-  이 컬럼과 `hobby` 컬럼을 묶어 인덱스를 추가하면,<br/>
-  `where`와 `group by`에 적절하게 활용해서 커버링 인덱스로 쓸 수 있을 것이라 생각했다.<br/>
+  이와 `hobby` 컬럼을 묶어 인덱스를 추가하면, `where`와 `group by`를 적절하게 활용해서 커버링 인덱스로 쓸 수 있을 거라 생각했다.<br/>
 
   ```sql
   create index `idx_member_id_hobby` on programmer (member_id, hobby);

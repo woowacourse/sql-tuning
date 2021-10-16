@@ -139,5 +139,41 @@ order by
 - **시간이 많이 소요되지 않았다고 판단해, 인덱스는 걸지 않기로 했어요**
 
 #### [서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)]
+- **다음과 같이 쿼리를 작성했어요**
+    ```mysql
+    select covid.stay, count(*) AS `인원수`
+    from programmer 
+        join member
+            on programmer.member_id = member.id
+        join covid
+            on programmer.id = covid.programmer_id
+        join hospital
+            on hospital.id = covid.hospital_id
+    where programmer.country = 'India'
+        and (member.age >= 20 and member.age < 30)
+        and hospital.name = '서울대병원'
+    group by stay;
+    ```
+    - 대략 250ms 정도 소요 되어요
+        - ![](./image/b-4-before-index.PNG)
+    - 실행 계획은 다음과 같아요
+        - ![](./image/b-4-execution-plan.PNG)
 
+- **다음과 같이 인덱스를 적용했어요**
+    - 기존의 programmer, covid, member, hospital에는 id에 PK 조건이 걸려있어요. 
+    - covid 테이블에 member_id, programmer_id 에 unique 조건을 걸어줬어요
+    - hospital 테이블의 name에 unique를 걸어줬어요
+    - programmer 테이블의 member_id에 unique 조건을 걸어줬어요
+    - member 테이블에 age에 대해 index를 생성했어요
+    - programmer 테이블에 country에 대한 index를 생성했어요
+    - 적용 후 대략 95~110ms 정도의 시간이 걸려요
+        - ![](./image/b-4-after-index.PNG)
+    - 실행 계획은 다음과 같아요
+        - ![](./image/b-4-after-execution.PNG)    
+        
+- **더 줄어들지가 않네요...** 
+    - stay에 인덱스를 걸어봐도, 
+    - 마지막 group by에 tmp table, filesort가 안좋다고 판단해 order by null을 걸어도,
+    - 더 이상 시간이 단축되지 않아요ㅜㅜㅜ
+    
 #### [서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)]

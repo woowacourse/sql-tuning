@@ -637,8 +637,170 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 <br/>
 
-- [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
-- [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+- [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계한다.
+
+<details>
+  <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+  select
+    covid.stay as '입원 기간',
+    count(covid.stay) as '인원수'
+  from
+    hospital
+  join
+    covid on hospital.id = covid.hospital_id
+  join
+    programmer on covid.programmer_id = programmer.id
+  join
+    member on programmer.member_id = member.id
+  where
+    programmer.country = 'India' and
+    hospital.name = '서울대병원' and
+    member.age between 20 and 29
+  group by
+    covid.stay
+  order by
+    null;
+  ```
+
+</details>
+
+<details>
+  <summary>실행 결과</summary>
+
+  #### 소요 시간
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596728-25777f08-8656-47a2-8fee-dd294842634a.png">  
+  </p>
+  
+  #### 테이블 출력
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596858-d329b670-79a3-4b5b-8476-7fc17bab9ce7.png">  
+  </p>
+
+  #### 실행 계획
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596736-d85ddaf2-0163-473c-9170-db8fe0c9fcd9.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596765-4a9b063d-29c8-411f-9d28-aca956d0e7a1.png">  
+  </p>
+
+</details>
+
+<details>
+  <summary>정리</summary>
+  
+  #### 1.
+  쿼리를 작성하고, 실행 시간과 실행 계획을 확인했다.<br/>
+
+  ```sql
+  select
+    covid.stay as '입원 기간',
+    count(covid.stay) as '인원수'
+  from
+    hospital
+  join
+    covid on hospital.id = covid.hospital_id
+  join
+    programmer on covid.programmer_id = programmer.id
+  join
+    member on programmer.member_id = member.id
+  where
+    programmer.country = 'India' and
+    hospital.name = '서울대병원' and
+    member.age between 20 and 29
+  group by
+    covid.stay
+  order by
+    null;
+  ```
+  <br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596447-ef832dc6-2dfc-4adc-8ea7-2668a231c2da.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596461-27065aa1-4006-47f1-a08a-6501e5a2bc4e.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596469-4232d5ed-7bee-41aa-8486-180a4bc3a331.png">  
+  </p>
+  
+  #### 2.
+  인덱스가 PK만 있는 상태에서는 100ms 이하의 쿼리를 만들 수 없었다.<br/>
+  그래서 인덱스를 FK 기준으로 추가했다.<br/>
+
+  ```sql
+  create index `idx_member_id_country` on programmer (member_id, country);
+  create index `idx_hospital_id_programmer_id` on covid (hospital_id, programmer_id);
+  ```
+  <br/>
+  
+  이어서 실행 결과와 실행 계획을 확인했다.<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596589-ac15516e-2956-431f-9ab7-9c472568268b.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596626-9704b093-ea81-4e82-94b6-fc21bf90bc9a.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596616-134b104c-11c0-4436-a1d6-8b744bed1652.png">  
+  </p>
+  
+  #### 3.
+  `hospital`의 Full Table Scan을 없앨 수 있는 방법이 없을까 고민했다.<br/>
+  한번 name 컬럼에 인덱스를 걸어봤고, 결과는 성공적이었다.<br/>
+
+  ```sql
+  create index `idx_name` on hospital (name);
+  ```
+  <br/>
+  
+  실행 시간도 빨라졌고, 실행 계획도 원하는 모습으로 나타났다.<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596728-25777f08-8656-47a2-8fee-dd294842634a.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596736-d85ddaf2-0163-473c-9170-db8fe0c9fcd9.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137596765-4a9b063d-29c8-411f-9d28-aca956d0e7a1.png">  
+  </p>
+
+</details>
+
+<br/>  
+
+- [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계한다.
+
+<details>
+  <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+
+  ```
+
+</details>
+
+<details>
+  <summary>실행 결과</summary>
+
+  #### 소요 시간
+
+  #### 테이블 출력
+
+  #### 실행 계획
+</details>
+
+<details>
+  <summary>정리</summary>
+</details>
 
 <br/>
 

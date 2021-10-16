@@ -90,7 +90,7 @@ extra의 정보는 다음과 같다.
 ![image](https://user-images.githubusercontent.com/45073750/136989232-c317dc27-a827-483c-8ff6-09097d85bfc9.png)
 
 ```sql
-select hobby, round(count(hobby) / (select count(*) from programmer) * 100, 1) 
+select hobby, round(count(hobby) / (select count(id) from programmer) * 100, 1) 
 from programmer 
 group by hobby;
 ```
@@ -98,7 +98,7 @@ group by hobby;
 hobby에 인덱스를 걸어주었다. round는 반올림을 해주는 함수다. 두 번째 인수에 1을 넣음으로써 소숫점 첫 번째 자리에서 반올림을 하게끔 하였다.  
 결과로 0.232sec이 나왔다. (m1 기반 도커에 mysql를 올렸을 때 이슈가 있다고 한다. 정상적인 쿼리다! 우분투 ec2 도커 mysql로 돌리니 0.083이 나왔다.)  
 
-두 번째 요구사항인 프로그래머별로 해당하는 병원 이름을 반환하세요.(Coding as a Hobby는 뒤에서 함)  
+두 번째 요구사항인 프로그래머별로 해당하는 병원 이름을 반환하세요.  
 
 hospital 테이블에는 hospital_id, name 이 존재, programmer 테이블에는 programmer_id, member_id 가 존재, covid 테이블에는 covid_id, hospital_id, member_id, programmer_id 가 존재한다.  
 
@@ -228,7 +228,7 @@ select covid.id covid_id, hospital.name hospital_name, hobbyProgrammer.hobby, ho
 from (
 	select id, hobby, dev_type, years_coding_prof 
   from programmer 
-  where hobby = "Yes" and years_coding_prof = "0-2 years" 
+  where hobby = "Yes" and (years_coding_prof = "0-2 years" or student <> 'No') 
 ) hobbyProgrammer 
 left join covid on covid.programmer_id = hobbyProgrammer.id 
 left join hospital on covid.hospital_id = hospital.id 
@@ -236,6 +236,7 @@ order by hobbyProgrammer.id;
 ```
 
 요구사항에 맞게끔 쿼리를 짰다. 그 결과 duration/fetch time은 0.050/0.094 sec이 나왔다.  
+우분투 환경에서는 0.0099  
 ![image](https://user-images.githubusercontent.com/45073750/136395255-b1f96f02-a82d-4b8b-af7f-acae2bb00b10.png)
 
 실행 계획도 인덱스를 이용한 것을 알 수가 있었다.  
@@ -245,7 +246,7 @@ order by hobbyProgrammer.id;
 ```sql
 create index I_age on member(age);
 
-select covid.stay, count(*)  
+select covid.stay, count(twenty_member.id)  
 from (
  select id from member where age between 20 and 29 
 ) twenty_member 
@@ -259,7 +260,7 @@ group by covid.stay;
 ```sql
 /* covid의 member_id,stay programmer의 member_id 에 인덱스를 걸었다. */
 
-select covid.stay, count(*)  
+select covid.stay, count(twenty_member.id)  
 from (
  select id from member where age between 20 and 29 
 ) twenty_member 
@@ -279,7 +280,7 @@ group by covid.stay;
 
 ```sql
 /* programmer의 member_id country, covid의 member_id stay 가 인덱스로 걸린 상태다.*/
-select covid.stay, count(*)  
+select covid.stay, count(twenty_member.id)  
 from (
  select id from member where age between 20 and 29 
 ) twenty_member 
@@ -305,7 +306,7 @@ from (
 ) indian 
 inner join member on member.id = indian.member_id and member.age between 20 and 29 
 inner join covid on covid.member_id = indian.member_id 
-left join hospital on covid.hospital_id = hospital.id and hospital.name = "서울대병원" 
+inner join hospital on covid.hospital_id = hospital.id and hospital.name = "서울대병원" 
 group by covid.stay;
 ```
 
@@ -347,7 +348,7 @@ group by covid.stay;
 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)  
 
 ```sql
-select programmer.exercise, count(*) 
+select programmer.exercise, count(programmer.id) 
 from programmer 
 inner join member on member.id = programmer.member_id and age between 30 and 39 
 inner join covid on covid.programmer_id = programmer.id 
@@ -369,10 +370,31 @@ Member의 age 컬럼과 Covid에 programmer_id가 인덱스 걸려있는 상태�
 5. 복합 인덱스를 사용할 시에는 범위 검색에 관한 컬럼을 뒤쪽에 두어야 한다.
 6. 데이터가 많은 테이블을 드라이빙 테이블로 삼아야 한다.
 
++)  
+미션 제출 후 조앤의 피드백 중 ``count(*)`` 와 ``count(column)`` 의 차이점이 무엇이냐에 대한 피드백이 있어서 조사해보았다.  
+
+``count()``는 row의 수를 리턴해주는 함수다.  
+``count(*)``, ``count(1)``, ``count(column)``, ``count(distinct column name)`` 의 차이를 알아보자.  
+
+### ``count(*)`` VS ``count(1)``
+
+차이점이 없다. ``count(*)`` 는 null value를 포함해서 모든 row를 센다.  
+``count(1)`` 은 첫 번째 컬럼만 count 하는 것이 아니다.  
+
+### ``count(*)`` VS ``count(column)``
+
+``count(column)`` 은 not null인 row에 대해서만 count 한다. ``count(*)`` 는 다 센다.  
+
+### ``count(column)`` VS ``count(distinct column)``
+
+``count(distinct column)`` 은 중복이면 count 하지 않고, 중복되지 않은 것만 count 한다.  
+
 ***
 
-### REFERENCE
+### RFERENCE
 
 CU의 인덱스 강의  
 
-https://m.blog.naver.com/loleego/221620178986
+https://m.blog.naver.com/loleego/221620178986  
+
+https://learnsql.com/blog/difference-between-count-distinct/

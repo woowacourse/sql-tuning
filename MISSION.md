@@ -173,7 +173,36 @@ order by
         
 - **더 줄어들지가 않네요...** 
     - stay에 인덱스를 걸어봐도, 
-    - 마지막 group by에 tmp table, filesort가 안좋다고 판단해 order by null을 걸어도,
+    - where절 대신 각 테이블 별 서브쿼리를 통해 가져오는 필드의 모수를 줄여봐도,
+    - 마지막 group by에 tmp table, filesort가 안좋다고 판단해 order by null을 걸어도 (오히려 시간이 늘어나네요ㅜ),
     - 더 이상 시간이 단축되지 않아요ㅜㅜㅜ
     
 #### [서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)]
+- **다음과 같이 쿼리를 작성했어요**
+    ```mysql
+    select programmer.exercise, count(member.id)
+    from programmer
+        join covid
+            on programmer.id = covid.programmer_id
+        join member
+            on programmer.member_id = member.id
+        join hospital
+            on covid.hospital_id = hospital.id
+    where (member.age < 40 and member.age >= 30)
+        and hospital.name = '서울대병원'
+    group by programmer.exercise
+    order by null;
+    ```
+    - 이미 b-4에서 제약조건을 걸어둔 필드를 많이 재사용을 많이 해서 그런가 약 94ms 정도 소요되었어요. 
+        - ![](./image/b-5-before-index.PNG)
+    - 실행계획은 다음과 같아요
+        - ![](./image/b-5-execution-before.PNG)    
+
+- **다음과 같은 인덱스를 적용했어요**
+    - b-4에서의 제약조건/인덱스는 그대로 사용중이에요
+    - covid 테이블에서 full table scan이 발생해요.
+        - 따라서 hospital_id에 대해 인덱스를 생성해줬어요. 
+    - 약 50ms로 시간이 단축되었어요. 
+    - ![](./image/b-5-after-index.PNG)
+    - 실행계획은 다음과 같아요
+        - ![](./image/b-5-after-execution.PNG)

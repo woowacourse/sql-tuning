@@ -177,9 +177,12 @@ __시간 측정__
 __쿼리문__
 
 ```sql
-select programmer_id, hospital.name
-from (select programmer_id, hospital_id from covid where programmer_id is not null) programmer_covid 
-inner join hospital on programmer_covid.hospital_id = hospital.id; 
+select covid.id, hospital.name, programmer.id, programmer.hobby, programmer.dev_type, programmer.years_coding
+from covid 
+inner join programmer on covid.programmer_id = programmer.id
+inner join hospital on hospital.id = covid.hospital_id
+where hobby = 'Yes' and (student = 'Yes, part-time' or student = 'Yes, full-time' or years_coding = '0-2 years')
+order by programmer.id;
 ```
 
 1. 인덱스 적용 전 

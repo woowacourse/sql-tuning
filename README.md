@@ -210,10 +210,11 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 - [workbench](https://www.mysql.com/products/workbench/)에서 localhost:13306 (ID: root, PW: masterpw)로 접속한다.
 
-
 ### 요구사항
 
 > 주어진 데이터셋을 활용하여 조회 결과를 100ms 이하로 반환한다.
+
+<br/>
 
 - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환한다.
 
@@ -367,7 +368,130 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 <br/>
 
-- [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+- [x] 각 프로그래머별로 해당하는 병원 이름을 반환한다.
+
+<details>
+  <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+  select
+    programmer.id as '프로그래머',
+    hospital.name as '병원명'
+  from
+    programmer
+  join
+    covid on programmer.id = covid.programmer_id
+  join
+    hospital on hospital.id = covid.hospital_id;
+  ```
+</details>
+
+<details>
+  <summary>실행 결과</summary>
+
+  #### 소요 시간
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592807-c607c411-b1a0-4515-9cdb-1180ce4cf478.png">  
+  </p>
+
+  #### 테이블 출력
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137590083-131594fb-61c8-4103-baec-f62c37f0c4fd.png">
+  </p>
+
+  #### 실행 계획
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592818-972d76d4-3e45-47fe-9a38-591436d05935.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592854-33bf0f40-be0c-4395-afcf-a35be9d4394f.png">  
+  </p>
+
+</details>
+
+<details>
+  <summary>정리</summary>
+
+  #### 1.
+  우선, `programmer`, `covid`, `hospital`에 PK를 추가했다.
+  
+  ```sql
+  alter table programmer
+  add primary key(id);
+
+  alter table covid
+  add primary key(id);
+
+  alter table hospital
+  add primary key(id);
+  ```
+
+  #### 2.
+  쿼리를 작성하고, 실행 결과를 확인했다.<br/>
+  테이블이 기대대로 출력되고, 소요 시간도 요구사항을 충족했다.<br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137590083-131594fb-61c8-4103-baec-f62c37f0c4fd.png">
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137590168-4ad53151-2fb3-4316-b020-6965e5af3bfe.png">  
+  </p>
+  <br/>
+
+  이어서 실행 계획도 확인했다.<br/>
+  이때, `covid`는 Full Table Scan 중이었다.<br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137590251-a33216a9-1fe4-4eb4-8e32-2426ba1f6ba0.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137590560-230f67bd-ebaf-4eec-9e18-2c8cc461f19e.png">  
+  </p>
+
+  #### 3.
+  `covid`의 Full Table Scan을 개선하고 싶었다.<br/>
+  그래서 인덱스를 걸어줬다.<br/>
+
+  ```sql
+  create index `idx_programmer_id_hospital_id` on covid (programmer_id, hospital_id);
+  ```
+
+  #### 4.
+  다시 실행 결과와 실행 계획을 확인했다.<br/>
+  딱히 소요 시간이 나아지지는 않았고, 오히려 조금 더 늘어났다.<br/>
+  대신 `covid`의 Full Table Scan이 없어지고, 커버링 인덱스를 사용하게 됐다.<br/>
+  하지만 이번에는 `programmer`가 Full Table Scan을 하게 됐다.<br/>
+  `programmer`는 커버링 인덱스를 활용하고 있어 Index Range/Full Scan을 할 것이라 예상했는데 아니었다.<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592807-c607c411-b1a0-4515-9cdb-1180ce4cf478.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592818-972d76d4-3e45-47fe-9a38-591436d05935.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137592854-33bf0f40-be0c-4395-afcf-a35be9d4394f.png">  
+  </p>
+  <br/>
+
+  #### 5.
+  소요 시간을 더 개선하고 싶어 `hospital`의 name에 Unique 제약조건도 걸어봤는데, 별로 나아지지 않았다.<br/>
+  (기존에 `hospital`의 name 타입이 text로 되어 있어 varchar로 변경하고 제약조건을 추가했다.)<br/>
+  결과적으로 100ms 이하의 쿼리이긴 하니깐, 여기까지 실험을 진행하고 마쳤다.<br/>
+
+</details>
+
+<details>
+  <summary>질문</summary>
+  <br/>
+
+  커버링 인덱스가 적용되고 있는데도 Full Table Scan을 하는 이유는 무엇일까요??<br/>
+  커버링 인덱스는 인덱스만으로도 결과를 도출할 수 있어 디스크까지 접근하지 않는다고 이해하고 있는데, 제가 놓친 부분이 있을까요?<br/>
+</details>
+
+<br/>
+
 - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
@@ -376,6 +500,6 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 ## C. 프로젝트 요구사항
 
-### a. 페이징 쿼리를 적용 
+### a. 페이징 쿼리를 적용
 
-### b. Replication 적용 
+### b. Replication 적용

@@ -317,7 +317,7 @@ from member
 inner join(select id, exercise from programmer) as programmer on programmer.id = member.id
 inner join covid on covid.member_id = programmer.id
 inner join (select id from hospital where name = '서울대병원') selected_hospital on selected_hospital.id = covid.hospital_id
-where age between 20 and 29
+where age between 30 and 39
 group by programmer.exercise
 order by null;
 ```

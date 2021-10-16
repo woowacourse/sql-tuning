@@ -492,7 +492,152 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 <br/>
 
-- [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+- [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬한다.
+
+<details>
+  <summary>쿼리 작성</summary>
+  <br/>
+
+  ```sql
+  select
+    programmer.id as '프로그래머',
+          hospital.name as '병원명'
+  from
+    hospital
+  join
+    covid on hospital.id = covid.hospital_id
+  join
+    programmer on covid.id = programmer.id
+  where
+    programmer.hobby = 'Yes' and
+    (
+        programmer.dev_type = 'Student' or
+        programmer.years_coding = '0-2 years'
+      )
+  order by
+    programmer.id;
+  ```
+</details>
+
+<details>
+  <summary>실행 결과</summary>
+
+  #### 소요 시간
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137594833-a548a132-fcaa-4e85-b6e4-304219389151.png">  
+  </p>
+
+  #### 테이블 출력
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137594863-c8eefcfa-7b0e-4df8-a074-dd0f4dd2122c.png">
+  </p>
+
+  #### 실행 계획
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137594881-63b46bdd-3aa2-4478-897e-82a48ce9d462.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137594907-19d9e3ce-6504-428a-b6e1-baf09d2c2463.png">  
+  </p>
+</details>
+
+<details>
+  <summary>정리</summary>
+  
+  #### 1.
+  이전 문제의 쿼리를 이용할 수 있을 것 같아, 이를 활용해서 쿼리를 작성했다.<br/>
+  근데 성능이 생각보다 좋지는 않았다.<br/>
+  
+  ```sql
+  select
+    programmer.id as '프로그래머',
+          hospital.name as '병원명'
+  from
+    programmer
+  join
+    covid on programmer.id = covid.programmer_id
+  join
+    hospital on hospital.id = covid.hospital_id
+  where
+    programmer.hobby = 'Yes' and
+    (
+        programmer.dev_type = 'Student' or
+        programmer.years_coding = '0-2 years'
+      )
+  order by
+    programmer.id;
+  ```
+  <br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137594960-1fd151dd-0baf-4e51-8ac3-afa0836e8786.png">  
+  </p>
+  
+  #### 2.
+  어떻게 개선해야 하나 고민하다, 모수 테이블을 변경해서 랜덤 액세스를 줄여야겠다고 생각했다.<br/>
+  결과는 성공적이었다! 인덱스를 추가하는 것보다 성능이 크게 개선됐다.<br/>
+  
+  ```sql
+  select
+    programmer.id as '프로그래머',
+    hospital.name as '병원명'
+  from
+    hospital
+  join
+    covid on hospital.id = covid.hospital_id
+  join
+    programmer on covid.id = programmer.id
+  where
+    programmer.hobby = 'Yes' and
+    (
+      programmer.dev_type = 'Student' or
+      programmer.years_coding = '0-2 years'
+    )
+  order by
+    programmer.id;
+  ```
+  <br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595156-aa4fac8c-d475-4662-bdcf-a51ec3d12a21.png">  
+  </p>
+
+  #### 3.
+  한편 실행 계획을 살펴보면 `programmer`가 Full Table Scan을 하고 있고, 커버링 인덱스를 사용하는 테이블이 없었다.<br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595208-136773dd-e550-40bc-a01a-143e9a3d9b8c.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595229-fd294f80-626d-4e17-8a53-0ac0284d2e22.png">  
+  </p>
+
+  #### 4.
+  그래서 `programmer`에 인덱스를 추가했다. 이때, 커버링 인덱스가 적용되게 만들었다.<br/>
+  다만 `programmer`의 dev_type 타입이 text여서 인덱스를 생성할 수 없었다.<br/>
+  따라서, 해당 컬럼을 제외하고 인덱스를 걸었다.<br/>
+
+  ```sql
+  create index `idx_hobby_years_coding_id` on programmer (hobby, years_coding, id);
+  ```
+  <br/>
+  
+  실행 결과와 실행 계획이 만족스럽게 나왔다 🙌<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595422-bf234cbe-c9ce-4f08-bddd-203af8d24242.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595433-4a3ffdcb-3157-4531-9a91-b27ce5e50a03.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137595446-9cf8d15f-a6f0-4d62-b70b-615738f47c1d.png">  
+  </p>
+
+</details>
+
+<br/>
+
 - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 

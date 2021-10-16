@@ -110,53 +110,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 - [x]  주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
     - [x]  [Coding as a Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
         
-        ### ~~제약조건~~
-        
-        ~~id, hobby 복합 제약조건, 설정~~ 
-        
-        ```sql
-        ~~ALTER TABLE programmer ADD UNIQUE `id_hobby_unique` (id, hobby);~~
-        ```
-        
-        ### **~~쿼리~~**
-        
-        ```sql
-        ~~SELECT `yes` , `no`
-        FROM (SELECT ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as `yes`
-        		FROM programmer
-        		WHERE hobby = 'Yes'
-        ) as `YES`, 
-        (SELECT ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as `no`
-        		FROM programmer
-        		WHERE hobby = 'No'
-        ) as `NO`;~~
-        ```
-        
-        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b6781671-49e1-4992-9a29-5662aead7301/Untitled.png)
-        
-        ![https://user-images.githubusercontent.com/48986787/136815843-e419168f-5a04-48bf-add7-1515bd6b7338.png](https://user-images.githubusercontent.com/48986787/136815843-e419168f-5a04-48bf-add7-1515bd6b7338.png)
-        
-        ![https://user-images.githubusercontent.com/48986787/136815769-ce96f5aa-168e-4ddf-abf7-6dd05b1999b6.png](https://user-images.githubusercontent.com/48986787/136815769-ce96f5aa-168e-4ddf-abf7-6dd05b1999b6.png)
-        
-        **~~실행계획 (EXPLAIN)~~**
-        
-        ![https://user-images.githubusercontent.com/48986787/136816057-f413478e-1282-4a99-9297-8def379bbd4f.png](https://user-images.githubusercontent.com/48986787/136816057-f413478e-1282-4a99-9297-8def379bbd4f.png)
-        
-        **~~실행계획 (Workbench)~~**
-        
-        ![https://user-images.githubusercontent.com/48986787/136816094-12b882bd-2658-460e-bca8-480ed2cd3953.png](https://user-images.githubusercontent.com/48986787/136816094-12b882bd-2658-460e-bca8-480ed2cd3953.png)
-        
-        > ~~아까워서 남겨보는 0.12 sec짜리의 쿼리..~~
-        > 
-        
-        ```sql
-        ~~SELECT hobby, ROUND(COUNT(hobby)*100/(SELECT COUNT(hobby) FROM programmer) ,1) as percentage
-        FROM subway.programmer
-        GROUP BY hobby
-        ORDER BY hobby desc;~~
-        ```
-        
-        ## 문제해결
+        programmer hobby 인덱싱
         
         ### **쿼리**
         
@@ -169,12 +123,26 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         ) tb_derived;
         ```
         
+        ![https://user-images.githubusercontent.com/48986787/137575175-385d78e7-7f34-4c1e-9b9c-c9354bc07019.png](https://user-images.githubusercontent.com/48986787/137575175-385d78e7-7f34-4c1e-9b9c-c9354bc07019.png)
+        
+        ![https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png](https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png)
+        
+        **실행계획 (EXPLAIN)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png](https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png)
+        
+        **실행계획 (Workbench)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png](https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png)
+        
+        쿼리가 확실히 줄어둔 것을 확인할 수 있어요. 
+        
+        ### 참고사항
+        
         기존의 쿼리가 너무 마음에 들지않아. 위와 같이 쿼리를 변경했어요. 
         하지만 좁혀지지 않는 통곡의 0.1초대의 벽이 느껴졌어요. (0.11~2초의 저주)
         
-        ![https://user-images.githubusercontent.com/48986787/137138204-1555180d-70b6-488d-96bc-384bf756d953.png](https://user-images.githubusercontent.com/48986787/137138204-1555180d-70b6-488d-96bc-384bf756d953.png)
-        
-        hobby의 카디널리티가 낮아, (id, unique) 복합유니크키를 유지했던 것이 문제였여요. 
+        hobby의 카디널리티가 낮아(카디널리티 2, 선택도 0.5), (id, hobby) 복합유니크키를 유지했던 것이 문제였여요. 
         쿼리에서 복합 unique키중 하나인 hobby를 Group by를 하려하니, Using temporary, 즉 내부에 임시 테이블이 추가되며 속도 저하가 일어난게 화근이었네요. 
         인덱스가 아니기에 정렬됨을 보장하지 않아 생기는 문제였어요. 
         
@@ -191,18 +159,6 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         ```
         
         hobby만 가지는 인덱스를 추가했어요. 
-        
-        ![https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png](https://user-images.githubusercontent.com/48986787/137142149-6d79a9b3-a9ae-415a-8fe0-55b7321ad505.png)
-        
-        **실행계획 (EXPLAIN)**
-        
-        ![https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png](https://user-images.githubusercontent.com/48986787/137142263-28afa97d-eb31-4baa-993f-a29903e84cac.png)
-        
-        **실행계획 (Workbench)**
-        
-        ![https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png](https://user-images.githubusercontent.com/48986787/137142304-dcc8f6ac-7101-43b3-ae6d-6101e17ddb32.png)
-        
-        쿼리가 확실히 줄어둔 것을 확인할 수 있어요. 
         
     - [x]  프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
         
@@ -237,158 +193,129 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
         
     - [x]  프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
         
-        ### ~~제약조건~~
-        
-        ~~인덱스 생성하지 않음.~~
-        
-        ### **~~쿼리~~**
-        
-        ```sql
-        ~~SELECT 
-            covid.id,
-            hospital.name,
-            user.Hobby,
-            user.Dev_Type,
-            user.Years_Coding,
-            user.student
-        FROM
-            subway.covid
-                JOIN
-            hospital ON hospital.id = covid.hospital_id
-                JOIN
-            programmer AS user ON user.id = covid.programmer_id
-        WHERE
-            (user.hobby = 'Yes'
-                AND user.student <> 'NO'
-                AND user.student <> 'NA')
-                OR (user.years_coding = '0-2 years')
-        ;~~
-        ```
-        
-        ![https://user-images.githubusercontent.com/48986787/136866681-88cea992-8a54-4496-9d0d-a2bddb526c53.png](https://user-images.githubusercontent.com/48986787/136866681-88cea992-8a54-4496-9d0d-a2bddb526c53.png)
-        
-        ![https://user-images.githubusercontent.com/48986787/136866711-15173e00-9791-4d8d-94c7-c66d22dd0127.png](https://user-images.githubusercontent.com/48986787/136866711-15173e00-9791-4d8d-94c7-c66d22dd0127.png)
-        
-        **~~실행계획 (EXPLAIN)~~**
-        
-        ![https://user-images.githubusercontent.com/48986787/136821094-ade65452-f169-404d-abe5-de6dd3c1fed4.png](https://user-images.githubusercontent.com/48986787/136821094-ade65452-f169-404d-abe5-de6dd3c1fed4.png)
-        
-        **~~실행계획 (Workbench)~~**
-        
-        ![https://user-images.githubusercontent.com/48986787/136866751-05e1adaa-7076-47a5-8e13-50ec2f12eca7.png](https://user-images.githubusercontent.com/48986787/136866751-05e1adaa-7076-47a5-8e13-50ec2f12eca7.png)
-        
-    
-    ## 문제해결1
-    
-    ### **쿼리**
-    
-    ```sql
-    SELECT C.id, H.name, P.Hobby, P.Dev_Type, P.Years_Coding, P.student
-    FROM (SELECT id, hospital_id, programmer_id FROM subway.covid) AS C
-    INNER JOIN (SELECT id, name FROM hospital) AS H ON H.id = C.hospital_id
-    INNER JOIN (
-    	SELECT id, Hobby, Dev_Type, Years_Coding, student FROM programmer 
-        WHERE (hobby = 'Yes'
-            AND student <> 'NO'
-            AND student <> 'NA')
-            OR (years_coding = '0-2 years')) AS P ON P.id = C.programmer_id
-    ;
-    ```
-    
-    전체 테이블에서 where 절을 거는 것이 마음에 들지 않았어요. FROM절에서 JOIN을 할때, 조건이 필요한 테이블은 조인 전 조건에 따라 분류해주면, 시간도 절약될 것이라 생각했어요.
-    
-    ![https://user-images.githubusercontent.com/48986787/137147909-d996dac7-e2df-4254-82ef-c5c195b98eb9.png](https://user-images.githubusercontent.com/48986787/137147909-d996dac7-e2df-4254-82ef-c5c195b98eb9.png)
-    
-    **0.026/sec**이 걸리던 쿼리가 **0.0085/sec**으로 3배가량 개선 됏네요! 
-    
-    **실행계획 (EXPLAIN)**
-    
-    ![https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png](https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png)
-    
-    **실행계획 (Workbench)**
-    
-    ![https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png](https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png)
-    
-    실행계획에서도 전반적인 cost가 감소한 것을 확인할 수 있네요! 
-    
-    ### 문제해결2 - hostpital의 name컬럼이 unique한가?에 대한 고찰.
-    
-    병원이름이 과연 겹칠까? 라고 생각을 했는데, 어쩌면 겹칠 수 있다고 생각해요. 사람 이름도 동일이름이 많은데 병원 이름도 분명 겹칠거에요 (수많은 "김내과"들..)
-    hospital에 있던 name의 UNIQUE 속성을 제거했어요.
-    
-    ```sql
-    DROP INDEX `name_UNIQUE`  ON `subway`.`hospital`;
-    ```
-    
-    실행되는 쿼리도 차이가 없네요! ("마음대로 UNIQUE 속성을 정의하지 말자"를 배웠네요 ㅎㅎ)
-    
-    ![https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png](https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png)
-    
-    - [x]  서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
-        
         ### 제약조건
         
-        member id PK, UQ 제약조건 
-        
-        covid stay 인덱싱 
-        
-        member  age 인덱싱
-        
-        programmer country 인덱싱 
+        없음
         
         ### **쿼리**
         
         ```sql
-        SELECT 
-            stay, COUNT(stay)
-        FROM (SELECT id FROM subway.member WHERE age BETWEEN 20 AND 29) AS M
-        INNER JOIN (SELECT programmer_id, member_id, stay FROM covid) AS C ON C.member_id = M.id
-        INNER JOIN (SELECT id, member_id FROM programmer WHERE country = 'India') AS P ON P.id = C.programmer_id
-        GROUP BY stay;
+        SELECT C.id, H.name, P.Hobby, P.Dev_Type, P.Years_Coding, P.student
+        FROM (SELECT id, Hobby, Dev_Type, Years_Coding, student FROM programmer 
+            WHERE (hobby = 'Yes'
+                AND student <> 'NO'
+                AND student <> 'NA')
+                OR (years_coding = '0-2 years')) AS P
+        INNER JOIN covid AS C ON C.programmer_id = P.id
+        INNER JOIN hospital AS H ON H.id = C.hospital_id	
+        ;
         ```
         
-        ![https://user-images.githubusercontent.com/48986787/136889997-91a14a22-541e-4698-9ad8-a85d5ac4bae9.png](https://user-images.githubusercontent.com/48986787/136889997-91a14a22-541e-4698-9ad8-a85d5ac4bae9.png)
+        ![https://user-images.githubusercontent.com/48986787/137575439-f63ee5d3-d406-4e6c-9531-7d3b2de8758d.png](https://user-images.githubusercontent.com/48986787/137575439-f63ee5d3-d406-4e6c-9531-7d3b2de8758d.png)
         
-        ![https://user-images.githubusercontent.com/48986787/136890046-c719a9a4-a478-4c89-8951-303ef76f8ca6.png](https://user-images.githubusercontent.com/48986787/136890046-c719a9a4-a478-4c89-8951-303ef76f8ca6.png)
+        ![https://user-images.githubusercontent.com/48986787/137575448-4bccb8a4-ef4f-4570-831c-db02b77e57af.png](https://user-images.githubusercontent.com/48986787/137575448-4bccb8a4-ef4f-4570-831c-db02b77e57af.png)
         
         **실행계획 (EXPLAIN)**
         
-        ![https://user-images.githubusercontent.com/48986787/136895290-a824cb05-0eb3-4f8f-b439-0bf60b56a17e.png](https://user-images.githubusercontent.com/48986787/136895290-a824cb05-0eb3-4f8f-b439-0bf60b56a17e.png)
+        ![https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png](https://user-images.githubusercontent.com/48986787/137148163-07870f73-5135-4ea9-a0bc-f175e5f33cb0.png)
+        
+        **실행계획 (Workbench)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137575503-65d61c21-a8f3-4466-b0f7-f4ddc38b6d54.png](https://user-images.githubusercontent.com/48986787/137575503-65d61c21-a8f3-4466-b0f7-f4ddc38b6d54.png)
+        
+        ### 참고사항
+        
+        전체 테이블에서 where 절을 거는 것이 마음에 들지 않았어요. FROM절에서 JOIN을 할때, 조건이 필요한 테이블은 조인 전 조건에 따라 분류해주면, 시간도 절약될 것이라 생각했어요.
+        
+        covid에 programmer_id를 인덱싱하면, 실행계획읜 Query Cost가 줄어듭니다.
+        
+        ![https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png](https://user-images.githubusercontent.com/48986787/137148215-2b8a2999-dba5-4faf-9899-76dd12c52f03.png)
+        
+        하지만 실행시간에 있어서, 큰 차이점을 느끼지 못해 인덱싱을 하지 않았어요.
+        이후 Query Cost가 중요하다면, programmer_id의 인덱싱을 고려해봐도 좋을 듯 합니다. 
+        
+        ### hostpital의 name컬럼이 unique한가?에 대한 고찰.
+        
+        병원이름이 과연 겹칠까? 라고 생각을 했는데, 어쩌면 겹칠 수 있다고 생각해요. 사람 이름도 동일이름이 많은데 병원 이름도 분명 겹칠거에요 (수많은 "김내과"들..)
+        hospital에 있던 name의 UNIQUE 속성을 제거했어요.
+        
+        ```sql
+        DROP INDEX `name_UNIQUE`  ON `subway`.`hospital`;
+        ```
+        
+        실행되는 쿼리도 차이가 없네요! ("마음대로 UNIQUE 속성을 정의하지 말자"를 배웠네요 ㅎㅎ)
+        
+        ![https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png](https://user-images.githubusercontent.com/48986787/137149699-f403f8ae-e32c-434e-a9fe-ab3ba3fc7f95.png)
+        
+    - [x]  서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+        
+        ### 제약조건
+        
+        member id PK 제약조건 
+        
+        coivd  (hospital_id, member_id) 인덱싱
+        
+        ### **쿼리**
+        
+        ```sql
+        SELECT stay, COUNT(stay)
+        FROM (SELECT id FROM subway.member WHERE age BETWEEN 20 AND 29) AS M
+        INNER JOIN covid AS C ON C.member_id = M.id
+        INNER JOIN (SELECT id, member_id FROM programmer WHERE country = 'India') AS P ON P.id = C.programmer_id
+        INNER JOIN (SELECT id, name FROM hospital WHERE name = '서울대병원') AS H ON H.id = C.hospital_id
+        GROUP BY stay;
+        ```
+        
+        ![https://user-images.githubusercontent.com/48986787/137574721-8dc21df8-5d01-4d7b-994c-abf2933e84be.png](https://user-images.githubusercontent.com/48986787/137574721-8dc21df8-5d01-4d7b-994c-abf2933e84be.png)
+        
+        ![https://user-images.githubusercontent.com/48986787/137574727-9ffa5a30-1e5d-4d31-ad0c-4d5a2a3115c8.png](https://user-images.githubusercontent.com/48986787/137574727-9ffa5a30-1e5d-4d31-ad0c-4d5a2a3115c8.png)
+        
+        **실행계획 (EXPLAIN)**
+        
+        ![https://user-images.githubusercontent.com/48986787/137574744-3e34844e-87c2-43d7-80ea-15043eb60f08.png](https://user-images.githubusercontent.com/48986787/137574744-3e34844e-87c2-43d7-80ea-15043eb60f08.png)
         
         **실행계획(Workbench)**
         
-        ![https://user-images.githubusercontent.com/48986787/136890106-555e9716-e260-464e-a912-be0b01bf8e25.png](https://user-images.githubusercontent.com/48986787/136890106-555e9716-e260-464e-a912-be0b01bf8e25.png)
+        ![https://user-images.githubusercontent.com/48986787/137574730-dd629a6e-7f23-42c0-b54f-75deb162e1a6.png](https://user-images.githubusercontent.com/48986787/137574730-dd629a6e-7f23-42c0-b54f-75deb162e1a6.png)
         
-    
+        ### 참고 사항
+        
+        covid 테이블의 hospital_id의 선택도(카디널리티)가 32로 나오고 있어요, 
+        member_id는 95667로 나와서, 먼저 member_id로 인덱스를 잡았어요. (카디널리티가 높으면 좋다~ 라는 생각으로)
+        하지만, 속도가 생각보다 좋게 나오지 않았어요. 
+        그다음으로, 복합 인덱스를 구성하며 (member_id, hospital_id)로 인덱스를 잡았는데 이또한 생각보다 늦은 속도를 보여주기에,  (hospital_id, member_id)로 인덱스를 잡았습니다.
+        복합 인덱스에서, 선행되는 테이블의 카디널리티가 너무 높으면, 그만큼 검색 비용이 더 들지 않을까 합니다 :) 
+        
     - [x]  서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
         
         ### 제약조건
         
         covid hospital_id, member_id 인덱싱
         
-        member  age 인덱싱
-        
-        hospital name 타입 VARCHAR(255)로 변경, name Unique 제약조건 설정 
-        
         ### **쿼리**
         
         ```sql
-        SELECT exercise, COUNT(exercise)
+        SELECT P.exercise, COUNT(exercise)
         FROM (SELECT id FROM subway.member WHERE age BETWEEN 30 AND 39) AS M
-        INNER JOIN (SELECT id, member_id, hospital_id, programmer_id FROM covid) AS C ON C.member_id = M.id
-        INNER JOIN (SELECT id, exercise FROM programmer) AS P ON P.id = C.programmer_id
+        INNER JOIN covid AS C ON C.member_id = M.id
+        INNER JOIN programmer AS P ON P.id = C.programmer_id
         INNER JOIN (SELECT id, name FROM hospital WHERE name = '서울대병원') AS H ON H.id = C.hospital_id
-        GROUP BY exercise;
+        GROUP BY P.exercise;
         ```
         
         ![https://user-images.githubusercontent.com/48986787/136895512-4eb22980-f5b4-442f-9f10-b04d36689d03.png](https://user-images.githubusercontent.com/48986787/136895512-4eb22980-f5b4-442f-9f10-b04d36689d03.png)
         
-        ![https://user-images.githubusercontent.com/48986787/136895596-54ac026e-b583-4b5b-a31c-f95ce4b125a7.png](https://user-images.githubusercontent.com/48986787/136895596-54ac026e-b583-4b5b-a31c-f95ce4b125a7.png)
+        ![https://user-images.githubusercontent.com/48986787/137574945-78c4b4df-f15a-4c2c-90af-9fc3cf0ee465.png](https://user-images.githubusercontent.com/48986787/137574945-78c4b4df-f15a-4c2c-90af-9fc3cf0ee465.png)
         
         **실행계획 (EXPLAIN)**
         
-        ![https://user-images.githubusercontent.com/48986787/136896714-38cc0cc7-df16-4544-8403-133b48a1e3a0.png](https://user-images.githubusercontent.com/48986787/136896714-38cc0cc7-df16-4544-8403-133b48a1e3a0.png)
+        ![https://user-images.githubusercontent.com/48986787/137574954-20fafc0f-f042-4622-a6a0-062268615d6b.png](https://user-images.githubusercontent.com/48986787/137574954-20fafc0f-f042-4622-a6a0-062268615d6b.png)
         
         **실행계획(Workbench)**
         
-        ![https://user-images.githubusercontent.com/48986787/136896788-e279b3a2-6f7c-4b94-bbbb-7f7cf58d9a42.png](https://user-images.githubusercontent.com/48986787/136896788-e279b3a2-6f7c-4b94-bbbb-7f7cf58d9a42.png)
+        ![https://user-images.githubusercontent.com/48986787/137574959-722b7c30-793f-49d1-8751-f5c214f2e839.png](https://user-images.githubusercontent.com/48986787/137574959-722b7c30-793f-49d1-8751-f5c214f2e839.png)
+        
+        ### 참고사항
+        
+        ORDER BY null을 통해,  실행계획 Extra의 filesort를 없앨 수는 있지만, 실행 속도의 차이가 크지 않았어요. 그룹화 된 exercise의 모수가 그렇게 크지 않아서 정렬을 하건, 하지 않던 차이가 없는듯 합니다.
+        GROUP BY가 기본적으로 정렬을 하기에, 다른 옵션을 추가하지 않았어요.

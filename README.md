@@ -776,14 +776,31 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 <br/>  
 
-- [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계한다.
+- [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계한다.
 
 <details>
   <summary>쿼리 작성</summary>
   <br/>
 
   ```sql
-
+  select
+      programmer.exercise as '운동 횟수',
+      count(programmer.exercise) as '인원수'
+  from
+      hospital
+  join
+      covid on hospital.id = covid.hospital_id
+  join
+      programmer on covid.programmer_id = programmer.id
+  join
+      member on programmer.member_id = member.id
+  where
+      hospital.name = '서울대병원' and 
+      member.age between 30 and 39
+  group by
+      programmer.exercise
+  order by
+      null;
   ```
 
 </details>
@@ -796,10 +813,91 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
   #### 테이블 출력
 
   #### 실행 계획
+
 </details>
 
 <details>
   <summary>정리</summary>
+
+  #### 1.
+  앞선 문제와 동일하게 쿼리를 작성하고, 실행 결과와 실행 계획을 확인했다.<br/>
+
+  ```sql
+  select
+      programmer.exercise as '운동 횟수',
+      count(programmer.exercise) as '인원수'
+  from
+      hospital
+  join
+      covid on hospital.id = covid.hospital_id
+  join
+      programmer on covid.programmer_id = programmer.id
+  join
+      member on programmer.member_id = member.id
+  where
+      hospital.name = '서울대병원' and 
+      member.age between 30 and 39
+  group by
+      programmer.exercise
+  order by
+      null;
+  ```
+  <br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597062-53b9f2dd-0b90-44a3-a64f-9d4c08733099.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597069-0499340d-17e8-4ddb-b653-c1c86d6c0b96.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597081-a7877f0a-869d-4206-9cf6-7cef785e6d29.png">  
+  </p>
+
+  #### 2.
+  역시 100ms 초과의 쿼리였다.<br/>
+  인덱스를 추가해야겠다고 생각했고, FK를 기준으로 걸어줬다.<br/>
+
+  ```sql
+  create index `idx_member_id` on programmer (member_id);
+  create index `idx_hospital_id_programmer_id` on covid (hospital_id, programmer_id);
+  ```
+  <br/>
+  
+  그리고 실행 시간과 실행 계획을 확인했다.<br/>
+  인덱스의 효과가 컸다. 성능이 많이 개선됐다.<br/>
+  
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597202-d5448426-bb93-4be6-8179-03f68d0461ff.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597210-abf8b0ed-3c78-4a48-badd-60fedcec45e7.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597221-0736e6e8-7b00-4d66-b43e-b916cc3e216d.png">  
+  </p>
+
+  #### 3.
+  이번에도 `hospital`의 Full Table Scan을 없애고 싶었다.<br/>
+  그래서 또 name 컬럼에 인덱스를 걸어서 해결했다.<br/>
+  
+  ```sql
+  create index `idx_name` on hospital (name);
+  ```
+  <br/>
+  
+  커버링 인덱스로 성능을 더 개선시킬 수 있었다! 🥳<br/>
+
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597298-ef67c74e-d136-4e07-b47e-8c85ea2cf2c9.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597311-ff2e2792-28a6-4b91-9d17-6e26aac7fd15.png">  
+  </p>
+  <p align="center">
+    <img src="https://user-images.githubusercontent.com/50176238/137597333-a99930c8-1a73-4d93-94e9-e4c4916a3ae3.png">  
+  </p>
+
 </details>
 
 <br/>

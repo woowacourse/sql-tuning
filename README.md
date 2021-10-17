@@ -14,6 +14,114 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 > 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
 (사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
 
+### * 풀이 과정
+
+```sql
+# 활동중인 부서
+EXPLAIN
+SELECT *
+FROM 부서
+WHERE UPPER(부서.비고) = 'ACTIVE';
+
+EXPLAIN
+SELECT *
+FROM 부서
+WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active';
+```
+
+```sql
+# 특정 부서의 부서 관리자들 총 조회
+SELECT *
+FROM 부서관리자
+JOIN (SELECT *
+	FROM 부서
+	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+) as 활동부서
+ON 활동부서.부서번호 = 부서관리자.부서번호;
+```
+
+```sql
+# 특정 부서의 부서 관리자들 총 조회 + 연봉 출력
+SELECT 부서관리자.사원번호, 사원.이름, 급여.연봉, 
+	직급.직급명, 사원출입기록.지역, 사원출입기록.입출입구분, 사원출입기록.입출입시간
+FROM 부서관리자
+JOIN (SELECT *
+	FROM 부서
+	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+) as 활동부서
+ON 활동부서.부서번호 = 부서관리자.부서번호
+JOIN 급여
+ON 급여.사원번호 = 부서관리자.사원번호
+JOIN 사원출입기록
+ON 부서관리자.사원번호 = 사원출입기록.사원번호
+JOIN 사원
+ON 사원.사원번호 = 부서관리자.사원번호
+JOIN 직급
+ON 사원.사원번호 = 직급.사원번호
+ORDER BY 연봉 DESC;
+```
+
+```sql
+# 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위 안에 드는 사람들
+SELECT 사원.사원번호, 사원.이름, 급여.연봉
+FROM 부서관리자
+JOIN (SELECT *
+	FROM 부서
+	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+) as 활동부서
+ON 활동부서.부서번호 = 부서관리자.부서번호
+
+JOIN 급여
+ON 급여.사원번호 = 부서관리자.사원번호
+
+JOIN 사원
+ON 사원.사원번호 = 부서관리자.사원번호
+WHERE 급여.종료일자 > now()
+AND 부서관리자.종료일자 > now()
+
+ORDER BY 급여.연봉 DESC
+LIMIT 5;
+```
+
+```sql
+# '활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위 안에 드는 사람들'이 
+# 최근에 각 지역별로 언제 퇴실했는지 조회해보기
+SELECT tb.사원번호, tb.이름, tb.연봉, 직급.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분
+FROM (
+	SELECT 사원.사원번호, 사원.이름, 급여.연봉
+	FROM 부서관리자
+	JOIN (SELECT *
+		FROM 부서
+		WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+	) as 활동부서
+	ON 활동부서.부서번호 = 부서관리자.부서번호
+
+	JOIN 급여
+	ON 급여.사원번호 = 부서관리자.사원번호
+
+	JOIN 사원
+	ON 사원.사원번호 = 부서관리자.사원번호
+	WHERE 급여.종료일자 > now()
+	AND 부서관리자.종료일자 > now()
+
+	ORDER BY 급여.연봉 DESC
+	LIMIT 5
+) as tb
+
+JOIN 직급
+ON tb.사원번호 = 직급.사원번호
+
+JOIN 사원출입기록
+ON tb.사원번호 = 사원출입기록.사원번호
+WHERE 직급.종료일자 > '2021-10-17'
+AND 사원출입기록.입출입구분 = 'O'
+
+ORDER BY tb.연봉 DESC;
+```
+
+![image](https://user-images.githubusercontent.com/41244373/137633649-068c4af9-d1f8-4fd6-9493-623b23187d40.png)
+
+
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

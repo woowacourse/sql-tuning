@@ -50,7 +50,8 @@ WHERE emp.사원번호 IN (
 
 ORDER BY pay.연봉 DESC
 ```
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2b351793-d1df-4458-83b7-03bc1d666288/Untitled.png)
+![1](https://user-images.githubusercontent.com/49058669/137623272-0eceee15-f0ac-4d9b-a62c-773dcf81f0f5.png)
+)
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
@@ -99,11 +100,12 @@ ORDER BY NULL;
 
 - 쿼리
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/79b3ad02-8e93-4964-b3dc-8b67bd0a1f9a/Untitled.png)
+![2](https://user-images.githubusercontent.com/49058669/137623315-a40a03c1-a7ad-4aca-9c19-80efc44bc780.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c558634d-6dc6-46f3-9d39-c7df3315f894/Untitled.png)
+![3](https://user-images.githubusercontent.com/49058669/137623318-d8ba7d85-0a35-4bc2-9c4c-20fc038d3acb.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/13a5221c-246b-4950-8e31-a4a090f33918/Untitled.png)
+![4](https://user-images.githubusercontent.com/49058669/137623319-d4668c4e-0ffa-40b9-aee8-ab8e3a9bb3b2.png)
+)
 
 - `programmer` id(PK, NN, UQ) 설정
 - `programmer` hobby index 추가
@@ -123,9 +125,9 @@ ORDER BY NULL;
 
 - 쿼리
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b961fb7f-bb19-4b0e-8537-86580f626a02/Untitled.png)
+![5](https://user-images.githubusercontent.com/49058669/137623348-e5899764-de84-4e41-92de-c945e7ee0c8c.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/af12b208-ef15-44d9-88e4-e9d9532557fa/Untitled.png)
+![6](https://user-images.githubusercontent.com/49058669/137623353-233941f3-d20b-4bd9-9c63-a44e0c8e94e6.png)
 
 - `hospital` index type 변경 및 index 설정 : text → VARCHAR(255)
 - `hospital` id (PK, NN, UQ), name (UQ) 설정
@@ -162,9 +164,9 @@ ORDER BY NULL;
 
 - 튜닝
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0b2e41ab-0003-4ed8-b359-8c414dd65611/Untitled.png)
+![7](https://user-images.githubusercontent.com/49058669/137623354-e4637903-c158-48db-9636-683815318262.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/c93969d7-a6ec-4bc5-9d0d-d26827dfb46a/Untitled.png)
+![8](https://user-images.githubusercontent.com/49058669/137623358-7582944a-992f-4c84-997e-4a0aa019f80d.png)
 
 - `programmer` hobby type 변경 : text → VARCHAR
 - `programmer` id(PK, NN, UQ), member_id(UQ) 설정
@@ -187,11 +189,11 @@ ORDER BY NULL;
 
 - 튜닝
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/729fd727-d51f-44dc-afb9-a2ac66c40817/Untitled.png)
+![9](https://user-images.githubusercontent.com/49058669/137623385-47fa9b5e-442b-41e1-a8d6-abca7b512a10.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/d2f59fbf-7de2-48bf-b374-eba5c3105e63/Untitled.png)
+![10](https://user-images.githubusercontent.com/49058669/137623387-f938ed5e-ef9e-40e7-a50c-c989eb6f2265.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/ca93f2ae-8f9a-4fff-b040-9ab0cc33a830/Untitled.png)
+![11](https://user-images.githubusercontent.com/49058669/137623390-8a5bb258-7157-4ded-8edb-e5a3a3c9ca96.png)
 
 - `hospital` index type 변경 및 index 설정 : text → VARCHAR(255)
 - `hospital` id (PK, NN, UQ), name (UQ) 설정
@@ -216,11 +218,11 @@ ORDER BY NULL;
 
 - 튜닝
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/f4b652ed-df89-4b4d-9171-e2862737d875/Untitled.png)
+![12](https://user-images.githubusercontent.com/49058669/137623392-3d8414e2-9e8c-4a21-b9cf-da798fbb17ef.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/6fcf3cc8-e388-4b34-8b6f-d3c40acb5110/Untitled.png)
+![13](https://user-images.githubusercontent.com/49058669/137623395-a86a7ae3-19bd-4562-b8f0-c209d8d78bc9.png)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/1e496b42-1637-4e80-a12b-9ffc69158eb2/Untitled.png)
+![14](https://user-images.githubusercontent.com/49058669/137623398-fbc4b7c7-1ba6-456f-ae69-2cfc791185a3.png)
 
 - `hospital` index type 변경 및 index 설정 : text → VARCHAR(255)
 - `hospital` id (PK, NN, UQ), name (UQ) 설정

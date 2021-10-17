@@ -36,7 +36,7 @@ SELECT *
 FROM 부서관리자
 JOIN (SELECT *
 	FROM 부서
-	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+	WHERE 부서.비고 = 'ACTIVE'
 ) as 활동부서
 ON 활동부서.부서번호 = 부서관리자.부서번호;
 ```
@@ -48,7 +48,7 @@ SELECT 부서관리자.사원번호, 사원.이름, 급여.연봉,
 FROM 부서관리자
 JOIN (SELECT *
 	FROM 부서
-	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+	WHERE 부서.비고 = 'ACTIVE'
 ) as 활동부서
 ON 활동부서.부서번호 = 부서관리자.부서번호
 JOIN 급여
@@ -68,7 +68,7 @@ SELECT 사원.사원번호, 사원.이름, 급여.연봉
 FROM 부서관리자
 JOIN (SELECT *
 	FROM 부서
-	WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+	WHERE 부서.비고 = 'ACTIVE'
 ) as 활동부서
 ON 활동부서.부서번호 = 부서관리자.부서번호
 

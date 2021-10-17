@@ -105,13 +105,13 @@ ORDER BY NULL;
 ![3](https://user-images.githubusercontent.com/49058669/137623318-d8ba7d85-0a35-4bc2-9c4c-20fc038d3acb.png)
 
 ![4](https://user-images.githubusercontent.com/49058669/137623319-d4668c4e-0ffa-40b9-aee8-ab8e3a9bb3b2.png)
-)
+
 
 - `programmer` id(PK, NN, UQ) 설정
 - `programmer` hobby index 추가
 - 쿼리 마지막에 `ORDER BY NULL` 추가
 
-1. 기본 쿼리 설계
+2. 기본 쿼리 설계
 
 ```sql
 SELECT C.id AS "프로그래머 ID", H.name AS "병원"
@@ -133,7 +133,7 @@ ORDER BY NULL;
 - `hospital` id (PK, NN, UQ), name (UQ) 설정
 - 쿼리 마지막에 `ORDER BY NULL` 추가
 
-1. 기본 쿼리 설계
+3. 기본 쿼리 설계
 
 ```sql
 초기에 이렇게 만들었는데 시간초과가 발생했다.
@@ -172,7 +172,7 @@ ORDER BY NULL;
 - `programmer` id(PK, NN, UQ), member_id(UQ) 설정
 - 쿼리 마지막에 `ORDER BY NULL` 추가
 
-1. 기본 쿼리 설계
+4. 기본 쿼리 설계
 
 ```sql
 SELECT stay AS "병원에 머문 기간", COUNT(C.id) AS "인원수 집계"
@@ -201,7 +201,7 @@ ORDER BY NULL;
 - `programmer` country index 설정
 - 쿼리 마지막에 `ORDER BY NULL` 추가
 
-1. 기본 쿼리 설계
+5. 기본 쿼리 설계
 
 ```sql
 SELECT exercise AS "운동 주기", COUNT(P.id) AS "인원수 집계"

@@ -151,17 +151,17 @@ ORDER BY tb.연봉 DESC;
 
 ### * 요구사항
 
-- [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+- [x] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
     - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
     - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    - [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+    - [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 
 ### * 풀이 과정
@@ -197,6 +197,66 @@ ON h.id = c.hospital_id;
 ```
 
 ![image](https://user-images.githubusercontent.com/41244373/137637613-4611b4c3-4769-4822-a389-7fd536a5f2b1.png)
+
+**3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)**
+
+```sql
+SELECT c.id, h.name, p.hobby, p.dev_type, p.years_coding
+FROM covid c
+
+JOIN programmer p
+ON p.id = c.programmer_id
+
+JOIN hospital h
+ON h.id = c.hospital_id
+
+WHERE (p.hobby = 'Yes' AND p.student != 'No')
+OR p.years_coding = '0-2 years';
+```
+
+![image](https://user-images.githubusercontent.com/41244373/137639335-c3e9d1dc-be76-4bdb-a47c-446417601ac4.png)
+
+**4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)**
+
+```sql
+SELECT c.stay, count(*)
+FROM covid c
+
+JOIN member m
+ON m.id = c.member_id
+
+JOIN hospital h
+ON h.id = c.hospital_id
+
+WHERE h.name = '서울대병원'
+AND m.age between 20 and 29
+GROUP BY c.stay;
+```
+![image](https://user-images.githubusercontent.com/41244373/137640009-613d7e5c-06d7-4414-bb4b-2779c94103b5.png)
+
+**5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)**
+
+- hospital 테이블의 name 컬럼을 VARCHAR로 바꾸고 인덱스를 부여했다. 
+
+```sql
+SELECT p.exercise, count(*)
+FROM covid c
+
+JOIN programmer p
+ON c.programmer_id = p.id
+
+JOIN member m
+ON m.id = c.member_id
+
+JOIN hospital h
+ON h.id = c.hospital_id
+
+WHERE h.name = '서울대병원'
+AND m.age between 30 and 39
+GROUP BY p.exercise;
+```
+
+![image](https://user-images.githubusercontent.com/41244373/137640265-65bd3540-b746-496f-830d-9c7f907bc7d0.png)
 
 
 

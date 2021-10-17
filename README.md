@@ -16,6 +16,8 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 
 ### * 풀이 과정
 
+**1. 쿼리 작성만으로 1s 이하로 반환한다.**
+
 ```sql
 # 활동중인 부서
 EXPLAIN
@@ -120,6 +122,24 @@ ORDER BY tb.연봉 DESC;
 ```
 
 ![image](https://user-images.githubusercontent.com/41244373/137633649-068c4af9-d1f8-4fd6-9493-623b23187d40.png)
+
+**2. 인덱스 설정을 추가하여 50 ms 이하로 반환한다.**
+
+1) 인덱스 설정 전 실행 계획
+![image](https://user-images.githubusercontent.com/41244373/137634312-b811a28d-0442-43c9-9dc9-8b801795ab8d.png)
+
+
+
+
+2) 인덱스 설정 후 실행 계획
+
+사원출입기록 테이블에서 PRIMARY Key를 '순번' 컬럼 하나로 바꾸고, '사원번호'에 대해 비클러스터링 인덱스를 따로 추가하는 형태로 바꾸었다. 
+이를 통해 Full Table Scan 하던 형태를 없애주었다. 
+
+![image](https://user-images.githubusercontent.com/41244373/137635884-ebb9477d-d16e-433a-9edf-59d452adedc0.png)
+
+![image](https://user-images.githubusercontent.com/41244373/137635965-0ca18567-fd4f-4d7d-b2ed-2da567dcce64.png)
+
 
 
 

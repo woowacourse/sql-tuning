@@ -153,9 +153,9 @@ ORDER BY tb.연봉 DESC;
 
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+    - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
@@ -167,6 +167,36 @@ ORDER BY tb.연봉 DESC;
 ### * 풀이 과정
 
 **1. [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.**
+
+hobby 컬럼에 인덱스 추가
+
+```sql
+SELECT 
+	round(count(case when hobby = 'Yes' then 1 end) / count(hobby) * 100, 1) as 'Yes',
+    round(count(case when hobby = 'No' then 1 end) / count(hobby) * 100, 1) as 'No'
+FROM programmer;
+```
+
+![image](https://user-images.githubusercontent.com/41244373/137636978-7b497040-1d3b-43ac-8aa5-e77e06453cac.png)
+
+**2. 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)**
+
+- covid 테이블 : id에 Primary Key 부여, programmer_id와 hospital_id에 인덱스 부여
+- programmer 테이블 : id에 Primary Key 부여
+- hospital 테이블 : id에 Primary Key 부여
+
+```sql
+SELECT c.id, programmer_id, hospital_id, h.name
+FROM covid c
+
+JOIN programmer p
+ON p.id = c.programmer_id
+
+JOIN hospital h
+ON h.id = c.hospital_id;
+```
+
+![image](https://user-images.githubusercontent.com/41244373/137637613-4611b4c3-4769-4822-a389-7fd536a5f2b1.png)
 
 
 

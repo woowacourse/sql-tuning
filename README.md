@@ -1,8 +1,9 @@
 # 🚀 조회 성능 개선하기
 
 ## A. 쿼리 연습
-
-### * 실습환경 세팅
+<details>
+<summary>실습환경 세팅</summary>
+<div markdown="1">
 
 ```sh
 $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
@@ -18,8 +19,11 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
+</div>
+</details>
+
 ---
-## A. 미션실행
+## A. 미션수행 내용
 ```sql
 SELECT a.사원번호, a.이름, a.연봉, a.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분
 FROM ( SELECT 사원.사원번호, 사원.이름, 직급.직급명, 급여.연봉
@@ -35,7 +39,7 @@ ON 사원출입기록.사원번호 = a.사원번호 and 사원출입기록.입�
 ORDER BY a.연봉 DESC
 ```
 
-### (맥, 인텔칩)
+## 실습 측정 환경 : 맥, 인텔칩
 - 인덱스 안 걸었을 시 
 ![image](https://user-images.githubusercontent.com/66905013/137458933-337ddde0-dc71-4197-a79f-777d0804d54e.png)
 
@@ -45,7 +49,9 @@ ORDER BY a.연봉 DESC
 ---
 ## B. 인덱스 설계
 
-### * 실습환경 세팅
+<details>
+<summary>실습환경 세팅</summary>
+<div markdown="2">
 
 ```sh
 $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
@@ -71,6 +77,54 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
+</div>
+</details>
+
+---
+
+## B. 미션수행 내용
+
+## 실습 측정 환경 : 윈도우
+## B-1
+#### programmer 테이블
+- pk 설정
+- hobby 에 인덱스 설정
+
+```sql
+use subway;
+
+# programmer 테이블에 pk 설정
+ALTER TABLE `subway`.`programmer` 
+CHANGE COLUMN `id` `id` BIGINT(20) NOT NULL AUTO_INCREMENT ,
+ADD PRIMARY KEY (`id`),
+ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
+;
+
+# programmer.hobby에 index 설정
+ALTER TABLE `subway`.`programmer` 
+ADD INDEX `I_hobby` (`hobby` ASC);
+;
+
+# 쿼리
+select hobby, round(count(*)/(select count(*) from programmer) * 100, 1) as percentage
+from programmer
+group by hobby
+order by hobby desc;
+```
+![subway-b-1](https://user-images.githubusercontent.com/66905013/137607325-3112a670-e499-4ab8-a75e-38a4b052376b.PNG)
+
+![subway-b-1-explain](https://user-images.githubusercontent.com/66905013/137607327-254bc71f-b75b-4ba8-9497-860f594a409f.png)
+
+## B-2
+
+## B-3
+
+## B-4
+
+## B-5
+
+
+---
 ## C. 프로젝트 요구사항
 
 ### a. 페이징 쿼리를 적용 

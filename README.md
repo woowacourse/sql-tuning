@@ -41,7 +41,9 @@ order by TOP5.연봉 DESC;
 ![Screenshot from 2021-10-18 01-48-59](https://user-images.githubusercontent.com/49307266/137637006-4fc7a5d2-8ffd-46af-864b-8be7ea1b9464.png)
 
 - index 추가
-`CREATE INDEX `idx_사원출입기록_사원번호`  ON `tuning`.`사원출입기록` (사원번호) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT`
+```
+CREATE INDEX `idx_사원출입기록_사원번호`  ON `tuning`.`사원출입기록` (사원번호) COMMENT '' ALGORITHM DEFAULT LOCK DEFAULT
+```
 
 - 결과: 0.0015sec
 ![Screenshot from 2021-10-18 01-51-20](https://user-images.githubusercontent.com/49307266/137637091-c28670b7-72e2-4706-8cd5-636b52168737.png)
@@ -61,19 +63,17 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 
-### * 요구사항
+### * 요구사항: 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
-- [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+1. [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+2. 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
-
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

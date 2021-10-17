@@ -1,5 +1,8 @@
 # 🚀 조회 성능 개선하기
 
+## A, B 미션 풀이
+[여길 클릭해 이동](https://midi-truck-761.notion.site/SQL-a1fa4ced43ee42098105003999231c41)
+
 ## A. 쿼리 연습
 
 ### * 실습환경 세팅
@@ -32,17 +35,17 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 ### * 요구사항
 
-- [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+- [X] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+    - [X] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    - [X] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    - [X] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    - [X] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+    - [X] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

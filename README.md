@@ -23,7 +23,7 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 </details>
 
 ---
-## A. 미션수행 내용
+## A. 미션수행 내용 (실습 측정 환경 : 맥, 인텔칩)
 ```sql
 SELECT a.사원번호, a.이름, a.연봉, a.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분
 FROM ( SELECT 사원.사원번호, 사원.이름, 직급.직급명, 급여.연봉
@@ -39,11 +39,10 @@ ON 사원출입기록.사원번호 = a.사원번호 and 사원출입기록.입�
 ORDER BY a.연봉 DESC
 ```
 
-## 실습 측정 환경 : 맥, 인텔칩
-- 인덱스 안 걸었을 시 
+### 인덱스 안 걸었을 시 
 ![image](https://user-images.githubusercontent.com/66905013/137458933-337ddde0-dc71-4197-a79f-777d0804d54e.png)
 
-- 인덱스 설정(사원출입기록.사원번호)
+### 인덱스 설정(사원출입기록.사원번호)
 ![image](https://user-images.githubusercontent.com/66905013/137459067-ce586b5b-0c8b-45c9-bb99-a179e6a4093b.png)
 
 ---
@@ -82,9 +81,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 ---
 
-## B. 미션수행 내용
-
-## 실습 측정 환경 : 윈도우
+## B. 미션수행 내용 (실습 측정 환경 : 윈도우)
 ## B-1
 - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 

@@ -165,8 +165,7 @@ FROM (
 
 ### 3
 ```sql
-SELECT p.id AS programmer_id,
-       c.id AS covid_id,
+SELECT c.id AS covid_id,
        h.name,
        p.hobby,
        p.dev_type,

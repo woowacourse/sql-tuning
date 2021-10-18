@@ -40,10 +40,13 @@ order by `총수량` desc;
 많이 주문한 순으로 고객 리스트(ID, 고객명)를 구해주세요. (고객별 구매한 물품 총 갯수)
 
 ```sql
-select c.CustomerID as '고객아이디', c.CustomerName as '고객이름', sum(od.Quantity) as '주문량'
-from Orders o, Customers c, OrderDetails od
-where o.CustomerID = c.CustomerID 
-and o.OrderID = od.OrderID
+select c.CustomerID as '고객아이디', c.CustomerName as '고객이름', IFNULL(q.totalQuantity, 0) as '주문량'
+from Customers c left join (
+  select o.CustomerID, sum(od.Quantity) as totalQuantity
+  from Orders o
+         inner join OrderDetails od on o.OrderID = od.OrderID
+  group by o.CustomerID) as q
+                           on c.CustomerID = q.CustomerID
 group by c.CustomerID
 order by `주문량` desc;
 ```
@@ -52,13 +55,18 @@ order by `주문량` desc;
 많은 돈을 지출한 순으로 고객 리스트를 구해주세요.
 
 ```sql
-select c.CustomerID as '고객아이디', c.CustomerName as '고객이름', sum(od.Quantity*p.Price) as '지출금액'
-from Orders o, Customers c, Products p, OrderDetails od
-where o.CustomerID = c.CustomerID 
-and o.OrderID = od.OrderID
-and od.ProductID = p.ProductID
+select c.CustomerID as '고객아이디', c.CustomerName as '고객이름', IFNULL(qp.Amount, 0) as '지출금액'
+from Customers c left join
+     (
+       select o.CustomerID, sum(od.Quantity*p.Price) as Amount
+       from OrderDetails od
+              inner join Products p on od.ProductID = p.ProductID
+              inner join Orders o on od.OrderID = o.OrderID
+       group by o.CustomerID
+     ) as qp on c.CustomerID = qp.CustomerID
 group by c.CustomerID
 order by `지출금액` desc;
+
 ```
 
 

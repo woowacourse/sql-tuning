@@ -187,8 +187,15 @@ order by percentage desc;
 #### 쿼리 및 인덱스에 대한 이유  
 우선, 조건은 비교적 쉬운 편이기에 쿼리에 대한 이유는 패쓰할게요. 아마 대부분 동일할거라 생각해요. 개선은 먼저 programmer.id에 PK를 지정해보았어요. 테이블의 프라이머리 키는 클러스터링의 기준이 되어요. 특히 InnoDB를 사용하기에 클러스터링 인덱스로 저장되는 테이블은 프라이머리 키 기반 검색이 빨라요. 그래서 서브쿼리에서 id를 활용하고 있기도 하고.. 등의 이유로 pk를 지정해줬어요. 추가로 hobby에 인덱스를 지정해보았어요. hobby에 추가 인덱스를 지정해준 이유는 group by 절에 인덱스를 적용해 인덱스 스캔이 일어나길 의도한 거였어요. 하지만 count(*)를 사용하고 있어서 그런지, 결국엔 full index scan이 일어나서 그렇게 효과는 없어보이네요. 🥲
 
+* 에어 리뷰 추가  
+hobby에 인덱스를 걸기 전 -> Full Table Scan, Duration 0.268sec    
+hobby에 인덱스를 걸고 난 후 -> Index Full Scan, Duration 0.048sec  
+hobby에 인덱스를 걸게 되면, hobby 기준으로 정렬된 데이터가 추출되고 추출된 row 수만 사용하기에 별도의 추가 테이블 액세스 필요성이 없어져 더 효율적으로 작동하는 듯 하다.  
 
-
+#### Index Full Scan은 나쁜것인가?
+Index Full Scan은 인덱스를 사용하지만 인덱스를 처음부터 끝까지 엑세스해서 일반적으로 성능저하를 일으킬 수 있다고 하는데요. 
+테이블의 대부분 데이터를 추출하는 경우는 테이블보다 작은 공간을 차지하는 인덱스를 엑세스 하여 I/O 양을 감소, 인덱스의 첫 번째 칼럼으로 정렬된 데이터를 자동 추출 등의 장점도 있다고 해요.
+  
 
 ---
 
@@ -218,9 +225,12 @@ Total number of rows in student table -> 98855
 
 covid 테이블을 통해 programmer_id 및 hospital_id에 모두 접근할 수 있기에, covid를 기준으로 join을 수행했었어요. 하지만 더 적은 행의 개수를 가진 
 hospital을 드라이빙 테이블로 설정해보았는데, 기존과 사실상 다름없는 결과가 나왔어요. 결국엔 3 테이블을 모두 inner join 하는 것이다 보니 동일하게 동작하는 것 같아요. (뇌피셜)
-추가적으로 covid.programmer_id, covid.hospital_id에 fk를 설정해주었어요. 하지만 오히려 fk 설정 전 Unique Key Lookup을 도는 게 더 나은 것 같아서, fk는 다시 지웠어요. 사실 하면서도 옳은 방향으로 하고있는게 맞는지 의문이 드네요.. [질문] 이 문제에 대해 에어는 어떤 방식으로 요구사항을 만족시켰나요?
 
+[뇌피셜에 대한 에어의 답변]  
+드라이빙, 드리븐 테이블은 내부적으로 Optimizer을 통해 결정된다. MySQL은 비용기반 옵티마이저를 사용하는데 이는 비용 측정을 위해 테이블, 인덱스, 칼럼 등의
+객체 통계 정보 및 시스템 통계 정보를 이용한다. 즉, join의 순서를 어떻게 걸어주던 결과로 만들어 낸 테이블의 형태는 같으니 CBO에 의해 동일한 실행계획이 정해진다.
 
+추가적으로 covid.programmer_id, covid.hospital_id에 fk를 설정해주었어요. 하지만 오히려 fk 설정 전 Unique Key Lookup을 도는 게 더 나은 것 같아서, fk는 다시 지웠어요. 사실 하면서도 옳은 방향으로 하고있는게 맞는지 의문이 드네요.. 
 
 ---
 
@@ -274,10 +284,12 @@ where p.hobby = 'Yes'
 #### 쿼리 및 인덱스에 대한 이유
 Programmer.id가 이미 select절에서 사용되고 있고, programmer.id는 pk이자 인덱스이므로 항상 정렬 상태를 유지해요. 따라서 order by 절을 생략해 불필요한 sort 및 filesort를 줄일 수 있었어요.
 
-[질문]
+[질문]  
 * 그럼 이미 p.id로 소트가 된 상태인데, order by 절에 p.id를 명시해주더라도 filesort가 발생하지 않아야하는거 아닐까요? 왜 order by로 명시하면 불필요한 정렬이 발생하는지 혹시 아시나요?
 
-
+[답변]  
+* order by에 명시된 칼럼이 제일 먼저 읽는 테이블에 속하고, order by에 적힌 순서대로 생성된 인덱스가 있어야 order by를 사용하더라도 인덱스를 사용한 정렬을 한다. 현재 covid 테이블을 
+  가장 먼저 읽기 때문에, c.id를 이용하면 불필요한 정렬이 발생하지 않는다.
 
 ---
 
@@ -321,7 +333,7 @@ group by c.stay;
 
   <img src="/images/b4-1.png" width="900"/>
 
-추가적으로 programmer와 member도 fk를 형성해주었어요. 또한 covid.stay도 카디널리티는 낮으나 group by 절에서 이용되고 있기에 인덱스로 추가해주었어요. 이후, Duration이 **0.052sec**으로 줄었어요. hospital.name까지 인덱스를 걸면, 성능이 더 개선될 것 같지만 TEXT 필드를 굳이 varchar로 변경하고 싶지 않고, 지금 수준도 만족할만하기에 굳이 추가하지 않았어요.
+ 또한 covid.stay도 카디널리티는 낮으나 group by 절에서 이용되고 있기에 인덱스로 추가해주었어요. 이후, Duration이 **0.052sec**으로 줄었어요. hospital.name까지 인덱스를 걸면, 성능이 더 개선될 것 같지만 TEXT 필드를 굳이 varchar로 변경하고 싶지 않고, 지금 수준도 만족할만하기에 굳이 추가하지 않았어요. 더불어 member.age에 인덱스를 걸어주니 filtering을 효율적으로 진행해 0.04x 대로 줄었어요.
 
  <img src="/images/b4-2.png" width="900"/>
 
@@ -353,7 +365,7 @@ group by p.exercise;
 * Duration: 0.127sec
 
 #### After
-이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았어요. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했어요. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았어요. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았어요. 이 문제를 통해 B4에서도 복합 인덱스를 적용해주면 더 개선될 수 있겠다는 생각이 들었어요 ㅎㅎ 에어는 어떻게 요구사항을 만족하셨나 궁금하네요.
+이번에는 이전에 해보지 않았던, 복합인덱스를 걸어보았어요. join문의 조건으로 사용되는 member_id, hospital_id를 1,2 순서로 covid 테이블에서 복합인덱스를 생성했어요. 복합인덱스를 고려한 이유는 hospital.name과 programmer.exercise 모두 TEXT 필드였기에, B4와 동일한 이유로 인덱싱을 고려하지 않았어요. 따라서 다른 인덱싱 방법을 찾던 중 복합인덱스를 시도해보았어요. 이 문제를 통해 B4에서도 복합 인덱스를 적용해주면 더 개선될 수 있겠다는 생각이 들었어요.
 
  <img src="/images/b5.png" width="900"/>
 

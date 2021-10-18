@@ -72,7 +72,7 @@ __쿼리문__
 select 
 round((select count(*) from programmer where hobby='Yes') / count(*) * 100, 2) as yes,
 round((select count(*) from programmer where hobby='No') / count(*) * 100, 2) as no
-select subway.programmer;
+from subway.programmer;
 ```
 
 1. 인덱스 적용 전 
@@ -177,7 +177,7 @@ __시간 측정__
 __쿼리문__
 
 ```sql
-select covid.id, hospital.name, programmer.id, programmer.hobby, programmer.dev_type, programmer.years_coding
+select covid.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding
 from covid 
 inner join programmer on covid.programmer_id = programmer.id
 inner join hospital on hospital.id = covid.hospital_id
@@ -289,6 +289,7 @@ ADD PRIMARY KEY (`id`),
 ADD UNIQUE INDEX `name_UNIQUE` (`name` ASC);;
 
 CREATE INDEX idx_covid_hospital_id ON covid(hospital_id);
+CREATE INDEX idx_covid_member_id ON covid(member_id);
 CREATE INDEX idx_covid_stay ON covid(stay);
 CREATE INDEX idx_member_age ON member(age);
 ```
@@ -355,7 +356,7 @@ ALTER TABLE `subway`.`programmer`
 CHANGE COLUMN `exercise` `exercise` VARCHAR(255) NULL DEFAULT NULL;
 
 CREATE INDEX idx_covid_hospital_id ON covid(hospital_id);
-CREATE INDEX idx_covid_exercise ON covid(exercise);
+CREATE INDEX idx_programmer_exercise ON programmer(exercise);
 CREATE INDEX idx_member_age ON member(age);
 ```
 

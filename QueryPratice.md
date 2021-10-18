@@ -12,10 +12,12 @@ JOIN 사원출입기록 AS b ON a.사원번호 = b.사원번호 AND a.입출입�
 ```  
 
 인덱스  
-  
+
+```SQL
 CREATE INDEX idx_enter on 사원출입기록(사원번호, 입출입구분);  
 CREATE Index idx_department on 부서(비고);  
 CREATE Index idx_employee on 직급(종료일자);  
+```
 
 실행결과  
   

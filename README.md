@@ -324,8 +324,18 @@ CHANGE COLUMN
 ![image](https://user-images.githubusercontent.com/37354145/137471646-02097488-128e-4d77-85ad-4db209e84022.png)
 
 그러나 PK를 부여한 이후 programmer 테이블 스캔시 row 개수가 71,000개에서 77,000개로 증가했다. 
-'왜 증가한 것인지?', 'row 개수 증가에 따라 query cost가 증가했음에도 속도는 더 빨라진 이유가 무엇인지?'
-는 조사가 더 필요할 것 같다.
+~~'왜 증가한 것인지?', 'row 개수 증가에 따라 query cost가 증가했음에도 속도는 더 빨라진 이유가 무엇인지?'
+는 조사가 더 필요할 것 같다.~~
+
+### 파즈의 피드백
+실행계획에서 rows 값은 아래와 같다.
+
+- 추정치일뿐, 완벽하게 `count(*)`와 일치하는 값은 아니다.
+- PK를 걸어주지 않았을 땐 mysql 내부에서 자체적으로 돌리는 클러스터드 인덱스가 존재한다.
+- PK를 걸어주면 새로운 클러스터드 인덱스 생성 + 몇 가지 설정 변화로 rows 값이 달라질 수 있다.
+
+속도는 query cost와 완전히 비례하지 않고, filter, sort 등 다른 동작에도 영향을 받는다.
+이 때문에 query cost가 낮아짐에도 오히려 속도가 느려지는 현상도 발생한다고 한다.
 
 ### cross join 제거
 인비로부터 ['ON 조건 없이 JOIN을 수행할 경우 CROSS JOIN이 된다'](https://stackoverflow.com/questions/16470942/how-to-use-mysql-join-without-on-condition/16471286) 라는 이야기를 듣고 

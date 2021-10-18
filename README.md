@@ -7,7 +7,7 @@
 ### 첫 번째 쿼리 작성 시도
 ```sql
 SELECT
-	고연봉관리자.사원번호 as 사원번호,
+    고연봉관리자.사원번호 as 사원번호,
     고연봉관리자.이름 as 이름,
     고연봉관리자.연봉 as 연봉,
     고연봉관리자.직급명 as 직급명,
@@ -16,30 +16,30 @@ SELECT
     사원출입기록.입출입시간 as 입출입시간
 FROM (
     SELECT 
-		사원.사원번호,
+	사원.사원번호,
         사원.이름,
         급여.연봉,
         직급.직급명
-	FROM 
-		부서
+    FROM 
+	부서
         JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
         JOIN 사원 ON 부서관리자.사원번호 = 사원.사원번호
         JOIN 직급 ON 부서관리자.사원번호 = 직급.사원번호
         JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
-	WHERE		
-		  부서.비고='Active'
-		  AND 부서관리자.시작일자 < CURDATE()
-		  AND CURDATE() < 부서관리자.종료일자 
-	ORDER BY
-		급여.연봉 DESC
-	LIMIT
-		5
+    WHERE		
+	부서.비고='Active'
+	AND 부서관리자.시작일자 < CURDATE()
+	AND CURDATE() < 부서관리자.종료일자 
+    ORDER BY
+	급여.연봉 DESC
+    LIMIT
+	5
     ) AS 고연봉관리자 
     JOIN 사원출입기록 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
 WHERE
-	사원출입기록.입출입구분 = 'O'
+    사원출입기록.입출입구분 = 'O'
 ORDER BY
-	고연봉관리자.연봉 DESC
+    고연봉관리자.연봉 DESC
 ;
 ```
 
@@ -50,7 +50,7 @@ ORDER BY
 
 ```sql
 SELECT
-	고연봉관리자.사원번호 as 사원번호,
+    고연봉관리자.사원번호 as 사원번호,
     고연봉관리자.이름 as 이름,
     고연봉관리자.연봉 as 연봉,
     고연봉관리자.직급명 as 직급명,
@@ -59,31 +59,31 @@ SELECT
     사원출입기록.입출입시간 as 입출입시간
 FROM (
     SELECT 
-		사원.사원번호,
+	사원.사원번호,
         사원.이름,
         급여.연봉,
         직급.직급명
-	FROM 
-		부서
+    FROM 
+	부서
         JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
         JOIN 사원 ON 부서관리자.사원번호 = 사원.사원번호
         JOIN 직급 ON 부서관리자.사원번호 = 직급.사원번호
         JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
-	WHERE		
-		부서.비고='Active'
-		AND CURDATE() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자    
-		AND CURDATE() BETWEEN 직급.시작일자 AND 직급.종료일자
-		AND CURDATE() BETWEEN 급여.시작일자 AND 급여.종료일자
-	ORDER BY
-		급여.연봉 DESC
-	LIMIT
-		5
+    WHERE		
+	부서.비고='Active'
+	AND CURDATE() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자    
+	AND CURDATE() BETWEEN 직급.시작일자 AND 직급.종료일자
+	AND CURDATE() BETWEEN 급여.시작일자 AND 급여.종료일자
+    ORDER BY
+	급여.연봉 DESC
+    LIMIT
+	5
     ) AS 고연봉관리자 
     JOIN 사원출입기록 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
 WHERE
-	사원출입기록.입출입구분 = 'O'
+    사원출입기록.입출입구분 = 'O'
 ORDER BY
-	고연봉관리자.연봉 DESC
+    고연봉관리자.연봉 DESC
 ;
 ```
 
@@ -102,7 +102,7 @@ ORDER BY
 
 ```sql
 SELECT
-	고연봉관리자.사원번호 as 사원번호,
+    고연봉관리자.사원번호 as 사원번호,
     고연봉관리자.이름 as 이름,
     고연봉관리자.연봉 as 연봉,
     고연봉관리자.직급명 as 직급명,
@@ -110,34 +110,34 @@ SELECT
     사원출입기록.입출입구분 as 입출입구,
     사원출입기록.입출입시간 as 입출입시간
 FROM (
-	SELECT 
-		사원.사원번호,
-		사원.이름,
-		MAX(급여.연봉) AS 연봉,
-		직급.직급명
-	FROM 
-		부서
-		JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
-		JOIN 사원 ON 부서관리자.사원번호 = 사원.사원번호
-		JOIN 직급 ON 부서관리자.사원번호 = 직급.사원번호
-		JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
-	WHERE		
-		부서.비고='Active'
-		AND CURDATE() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자    
-		AND CURDATE() BETWEEN 직급.시작일자 AND 직급.종료일자
-		AND CURDATE() BETWEEN 급여.시작일자 AND 급여.종료일자 
-	GROUP BY
-		사원.사원번호, 직급.직급명
-	ORDER BY
-		MAX(급여.연봉) DESC
-	LIMIT
-		5
+    SELECT 
+	사원.사원번호,
+	사원.이름,
+	MAX(급여.연봉) AS 연봉,
+	직급.직급명
+    FROM 
+	부서
+	JOIN 부서관리자 ON 부서.부서번호 = 부서관리자.부서번호
+	JOIN 사원 ON 부서관리자.사원번호 = 사원.사원번호
+	JOIN 직급 ON 부서관리자.사원번호 = 직급.사원번호
+	JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
+    WHERE		
+	부서.비고='Active'
+	AND CURDATE() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자    
+	AND CURDATE() BETWEEN 직급.시작일자 AND 직급.종료일자
+	AND CURDATE() BETWEEN 급여.시작일자 AND 급여.종료일자 
+    GROUP BY
+	사원.사원번호, 직급.직급명
+    ORDER BY
+	MAX(급여.연봉) DESC
+    LIMIT
+	5
     ) AS 고연봉관리자 
     JOIN 사원출입기록 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
 WHERE
-	사원출입기록.입출입구분 = 'O'
+    사원출입기록.입출입구분 = 'O'
 ORDER BY
-	고연봉관리자.연봉 DESC
+    고연봉관리자.연봉 DESC
 ;
 ```
 | 사원번호 | 이름 | 연봉 | 직급명 | 지역 | 입출입구 | 입출입시간 |
@@ -266,18 +266,18 @@ ORDER BY
 ### 쿼리 작성
 ```sql
 SELECT
-	hobby,
+    hobby,
     ROUND(COUNT(hobby) / total.hobby_count * 100, 1) AS percent
 FROM
-	programmer
+    programmer
     JOIN (
-		SELECT
-			COUNT(hobby) AS hobby_count
-		FROM
-			programmer
+	SELECT
+	    COUNT(hobby) AS hobby_count
+	FROM
+	    programmer
     ) AS total
 GROUP BY
-	hobby,
+    hobby,
     hobby_count
 ;
 ```
@@ -309,10 +309,10 @@ CREATE INDEX `idx_programmer_hobby` ON `subway`.`programmer` (hobby);
 
 ```sql
 ALTER TABLE 
-	`subway`.`programmer` 
+    `subway`.`programmer` 
 CHANGE COLUMN 
-	`id` `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
-	ADD PRIMARY KEY (`id`)
+    `id` `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+    ADD PRIMARY KEY (`id`)
 ;
 ```
 ```
@@ -343,12 +343,12 @@ CROSS JOIN을 제거하도록 쿼리를 수정해보았다.
 
 ```sql
 SELECT
-	hobby,
+    hobby,
     ROUND(COUNT(hobby) / (SELECT count(*) FROM .programmer) * 100, 1) AS percent
 FROM
-	programmer
+    programmer
 GROUP BY
-	hobby
+    hobby
 ;
 ```
 ```
@@ -363,11 +363,11 @@ duration에는 드라마틱한 변화가 없었지만, 그래프가 조금 더 �
 ## B-2. 각 프로그래머별로 해당하는 병원 이름을 반환하세요. 
 ```sql
 SELECT
-	programmer_id,
+    programmer_id,
     hospital_id,
     hospital.name AS hospital_name
 FROM
-	hospital
+    hospital
     JOIN covid ON hospital.id = covid.hospital_id
     JOIN programmer ON covid.programmer_id = programmer.id
 ;
@@ -406,23 +406,23 @@ id에 대해 Primary Key를 부여해둔 덕분일까? Unique Key Lookup 조회�
 ### B-3-1. '프로그래밍이 취미인 학생' 혹은 '주니어'
 ```sql
 SELECT
-	programmer_id,
+    programmer_id,
     hospital_id,
     hospital.name AS hospital_name
 FROM
-	hospital
+    hospital
     JOIN covid ON hospital.id = covid.hospital_id
     JOIN (
-		SELECT
-			id
-		FROM
-			programmer
-		WHERE
-			(hobby = 'Yes' AND dev_type LIKE '%Student%')
+	SELECT
+	    id
+	FROM
+	    programmer
+	WHERE
+	    (hobby = 'Yes' AND dev_type LIKE '%Student%')
             OR (years_coding = '0-2 years' AND dev_type LIKE '%Developer%')
-		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+    ) AS student_or_junior ON covid.programmer_id = student_or_junior.id
 ORDER BY
-	programmer_id
+    programmer_id
 ;
 ```
 ```
@@ -455,21 +455,21 @@ Primary Key가 모두 인덱싱이 되어 있었기 때문에 Unique Key Lookup�
 
 ```sql
 SELECT
-	programmer_id,
+    programmer_id,
     hospital_id,
     hospital.name AS hospital_name
 FROM
-	hospital
+    hospital
     JOIN covid ON hospital.id = covid.hospital_id
     JOIN (
-		SELECT
-			id
-		FROM
-			programmer
-		WHERE
-			(hobby = 'Yes' AND dev_type LIKE '%Student%')
+	SELECT
+	    id
+	FROM
+	    programmer
+	WHERE
+	    (hobby = 'Yes' AND dev_type LIKE '%Student%')
             OR (years_coding = '0-2 years' AND dev_type LIKE '%Developer%')
-		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+    ) AS student_or_junior ON covid.programmer_id = student_or_junior.id
 ;
 ```
 
@@ -484,26 +484,26 @@ FROM
 ### B-3-2. 프로그래밍이 취미인 '학생' 혹은 '주니어'
 ```sql
 SELECT
-	programmer_id,
+    programmer_id,
     hospital_id,
     hospital.name AS hospital_name
 FROM
-	hospital
+    hospital
     JOIN covid ON hospital.id = covid.hospital_id
     JOIN (
-		SELECT
-			id
-		FROM
-			programmer
-		WHERE
-			hobby = 'Yes'
+	SELECT
+	    id
+	FROM
+	    programmer
+	WHERE
+	    hobby = 'Yes'
             AND (
-				dev_type LIKE '%Student%'
+		dev_type LIKE '%Student%'
                 OR (
-					years_coding = '0-2 years' AND dev_type LIKE '%Developer%'
-				)
-			)
-		) AS student_or_junior ON covid.programmer_id = student_or_junior.id
+		    years_coding = '0-2 years' AND dev_type LIKE '%Developer%'
+		)
+	    )
+    ) AS student_or_junior ON covid.programmer_id = student_or_junior.id
 ;
 ```
 ```
@@ -537,36 +537,36 @@ FROM
 ### 쿼리 작성
 ```sql
 SELECT
-	stay,
+    stay,
     COUNT(stay) AS india_patients_count
 FROM
-	covid
+    covid
     JOIN (
-		SELECT
-			id
-		FROM
-			hospital
-		WHERE
-			name = '서울대병원'
+	SELECT
+	    id
+	FROM
+	    hospital
+	WHERE
+	    name = '서울대병원'
     ) AS seoul_national_univ_hospital ON hospital_id = seoul_national_univ_hospital.id
     JOIN (
-		SELECT
-			id
-		FROM
-			member
-		WHERE
-			age BETWEEN 20 AND 29
+	SELECT
+	    id
+	FROM
+	    member
+	WHERE
+	    age BETWEEN 20 AND 29
 	) AS twenties ON member_id = twenties.id
     JOIN (
-		SELECT
-			id
-		FROM
-			programmer
-		WHERE
-			country = 'India'
+	SELECT
+	    id
+	FROM
+	    programmer
+	WHERE
+	    country = 'India'
     ) AS indian ON programmer_id = indian.id
 GROUP BY
-	stay
+    stay
 ;
 ```
 ```
@@ -649,44 +649,44 @@ JOIN 단계에서 `covid` 테이블에 존재하는 다른 컬럼들까지 모�
 
 ```sql
 SELECT
-	covid.stay AS stay,
+    covid.stay AS stay,
     COUNT(covid.stay) AS india_patients_count
 FROM
-	(
-		SELECT 
+    (
+	SELECT 
             hospital_id,
             member_id,
             programmer_id,
             stay
-		FROM
-			covid
+	FROM
+	    covid
     ) AS covid
     JOIN (
-		SELECT
-			id
-		FROM
-			hospital
-		WHERE
-			name = '서울대병원'
+	SELECT
+	    id
+	FROM
+	    hospital
+	WHERE
+	    name = '서울대병원'
     ) AS seoul_national_univ_hospital ON covid.hospital_id = seoul_national_univ_hospital.id
     JOIN (
-		SELECT
-			id
-		FROM
-			member
-		WHERE
-			age BETWEEN 20 AND 29
+	SELECT
+	    id
+	FROM
+	    member
+	WHERE
+	    age BETWEEN 20 AND 29
 	) AS twenties ON covid.member_id = twenties.id
     JOIN (
-		SELECT
-			id
-		FROM
-			programmer
-		WHERE
-			country = 'India'
+	SELECT
+	    id
+	FROM
+	    programmer
+	WHERE
+	    country = 'India'
     ) AS indian ON covid.programmer_id = indian.id
 GROUP BY
-	stay
+    stay
 ;
 ```
 ```
@@ -703,42 +703,42 @@ GROUP BY
 ### 쿼리 작성
 ```sql
 SELECT
-	programmer.exercise AS exercise,
+    programmer.exercise AS exercise,
     COUNT(programmer.exercise) AS count_of_exercise
 FROM
-	(
-		SELECT 
+    (
+	SELECT 
             hospital_id,
             member_id,
             programmer_id
-		FROM
-			covid
+	FROM
+	    covid
     ) AS covid
     JOIN (
-		SELECT
-			id
-		FROM
-			hospital
-		WHERE
-			name = '서울대병원'
+	SELECT
+	    id
+	FROM
+	    hospital
+	WHERE
+	    name = '서울대병원'
     ) AS seoul_national_univ_hospital ON covid.hospital_id = seoul_national_univ_hospital.id
     JOIN (
-		SELECT
-			id
-		FROM
-			member
-		WHERE
-			age BETWEEN 30 AND 39
+	SELECT
+	    id
+	FROM
+	    member
+	WHERE
+	    age BETWEEN 30 AND 39
 	) AS thirties ON covid.member_id = thirties.id
     JOIN (
-		SELECT
-			id,
+	SELECT
+	    id,
             exercise
-		FROM
-			programmer
+	FROM
+	    programmer
     ) AS programmer ON covid.programmer_id = programmer.id
 GROUP BY
-	exercise
+    exercise
 ;
 ```
 ```

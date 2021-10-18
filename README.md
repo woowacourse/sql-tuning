@@ -64,14 +64,67 @@ inner join (select *
 on c.hospital_id = h.id
 where c.programmer_id is not null;
 
-ALTER TABLE covid ADD UNIQUE(id);
+ALTER TABLE covid ADD PRIMARY KEY(id);
 ```
 ![image](https://user-images.githubusercontent.com/66653739/137678711-f80afd43-6326-4d12-ad9f-6b4130e2b2be.png)
 ![image](https://user-images.githubusercontent.com/66653739/137678734-ce733443-e1b3-4315-9a48-d5ffdd71f58d.png)
 
 
 ### 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+``` sql
+select p.id, h.name 
+from programmer p 
+inner join covid c 
+on c.member_id = p.member_id
+inner join hospital h 
+on c.hospital_id = h.id
+where p.hobby = 'yes' or (p.dev_type like '%student%' or p.years_coding = '0-2 years')
+order by p.id;
+
+ALTER TABLE covid ADD PRIMARY KEY(id);
+ALTER TABLE programmer ADD PRIMARY KEY(id);
+ALTER TABLE hospital ADD PRIMARY KEY(id);
+
+ALTER TABLE programmer ADD INDEX index_programmer_member_id(member_id);
+ALTER TABLE covid ADD INDEX index_programmer_member_id(member_id);
+```
+![image](https://user-images.githubusercontent.com/66653739/137694655-584ebe17-18ce-4569-9e61-dcf065d1c32b.png)
+![image](https://user-images.githubusercontent.com/66653739/137694741-8144cade-043a-4bfd-99ee-423578722592.png)
+
 
 ### 4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+``` sql
+select c.stay, count(*)
+from programmer p
+inner join covid c
+on c.member_id = p.id and c.member_id is not null
+inner join member m 
+on m.id = p.member_id
+inner join hospital h
+on h.id = c.hospital_id
+where h.name = '서울대병원' and p.country = 'india' and 20 <= m.age and m.age < 30
+group by c.stay;
+
+-- hospital name column text -> varchar(255) 변경
+ALTER TABLE hospital ADD UNIQUE(name);
+ALTER TABLE covid ADD INDEX index_covid(hospital_id, member_id, programmer_id, stay);
+```
+![image](https://user-images.githubusercontent.com/66653739/137701074-8f18a966-5f91-4729-807a-5e95369de085.png)
+![image](https://user-images.githubusercontent.com/66653739/137701148-8a7376bf-09f9-41bc-b377-67f51bdcf0fa.png)
+
 
 ### 5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+``` sql
+select count(p.exercise), p.exercise
+from covid c
+inner join hospital h
+on c.hospital_id = h.id and c.member_id is not null
+inner join programmer p
+on c.programmer_id = p.id
+inner join member m
+on p.member_id = m.id
+where 30 <= m.age and m.age < 40 and h.name = '서울대병원'
+group by p.exercise
+```
+![image](https://user-images.githubusercontent.com/66653739/137702549-63d0503b-36f2-4450-9d7f-f11cbff7cc2a.png)
+![image](https://user-images.githubusercontent.com/66653739/137702591-cadb9adc-0a9a-4bcd-8696-b03df2038043.png)

@@ -147,9 +147,11 @@ CREATE INDEX `idx_hobby`  ON `subway`.`programmer` (hobby);
 ### 2
 ```sql
 SELECT c.programmer_id, h.name AS "병원 이름"
-FROM subway.covid as c
-       INNER JOIN subway.hospital as h
-                  ON c.hospital_id = h.id;
+FROM (
+    select id, programmer_id, hospital_id from subway.covid where programmer_id is not null
+) as c
+    INNER JOIN subway.hospital as h
+    ON c.hospital_id = h.id;
 ```
 #### 결과
 * 0.0041 sec / 0.000085 sec

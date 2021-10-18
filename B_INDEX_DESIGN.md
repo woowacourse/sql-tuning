@@ -10,7 +10,7 @@
 ## B-1.[Coding as a Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
 ### 모든 응답
-![img_1.png](img_1.png)
+![img_1.png](index_design_img/img_1.png)
 
 ### 1차 시도
 실행 시간 4.2s ~ 3.0s
@@ -27,8 +27,8 @@ FROM (SELECT count(case when hobby='yes' then 1 end) as yes_count,
       FROM programmer) AS hobby_count;
 ```
 
-![img_2.png](img_2.png)
-![img_3.png](img_3.png)
+![img_2.png](index_design_img/img_2.png)
+![img_3.png](index_design_img/img_3.png)
 
 ### 2차 시도
 우선 programmer 의 id 컬럼에 pk 제약조건도 걸려있지 않으므로 가장 우선해서 걸어줍니다.
@@ -44,8 +44,8 @@ ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
 
 ```
 
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
+![img_4.png](index_design_img/img_4.png)
+![img_5.png](index_design_img/img_5.png)
 
 ### 3차 시도
 이제 hobby 컬럼에 인덱스를 걸어봅니다.
@@ -56,13 +56,13 @@ create index `I_hobby` on subway.programmer (hobby);
 
 실행시간 0.080ms ~ 0.049ms
 
-![img_6.png](img_6.png)
-![img_7.png](img_7.png)
+![img_6.png](index_design_img/img_6.png)
+![img_7.png](index_design_img/img_7.png)
 
 Extra를 보면 Using index로 인덱스만으로 데이터를 가져온 것을 확인할 수 있습니다.
 
 ### 전문 개발자 응답
-![img.png](img.png)
+![img.png](index_design_img/img.png)
 
 ### 1차 시도
 
@@ -82,8 +82,8 @@ FROM (SELECT count(case when hobby='yes' then 1 end) as yes_count,
       WHERE dev_type != 'student' and dev_type != 'NA') AS hobby_count;
 ```
 
-![img_8.png](img_8.png)
-![img_9.png](img_9.png)
+![img_8.png](index_design_img/img_8.png)
+![img_9.png](index_design_img/img_9.png)
 
 ### 2차 시도
 우선 dev_type 컬럼을 WHERE절에서 사용하고 있으니 여기에 인덱스를 걸어봅니다.
@@ -99,8 +99,8 @@ FROM (SELECT count(case when hobby='yes' then 1 end) as yes_count,
 create index `I_dev_type` on subway.programmer (dev_type);
 ```
 
-![img_10.png](img_10.png)
-![img_11.png](img_11.png)
+![img_10.png](index_design_img/img_10.png)
+![img_11.png](index_design_img/img_11.png)
 
 ### 3차 시도
 
@@ -123,7 +123,7 @@ FROM (SELECT count(case when hobby='yes' then 1 end) as yes_count,
       WHERE (dev_type > 'student' or dev_type < 'student') and (dev_type > 'NA' or dev_type < 'NA')) AS hobby_count;
 ```
 
-![img_12.png](img_12.png)
+![img_12.png](index_design_img/img_12.png)
 
 하지만 여전히 인덱스를 사용하지 않고 있습니다.
 
@@ -145,8 +145,8 @@ FROM (SELECT count(case when hobby='no' and (dev_type > 'student' or dev_type < 
 AS hobby_count;
 ```
 
-![img_13.png](img_13.png)
-![img_14.png](img_14.png)
+![img_13.png](index_design_img/img_13.png)
+![img_14.png](index_design_img/img_14.png)
 
 Full index scan에 적당한 조회 시간을 가지는 쿼리를 완성했습니다.
 
@@ -167,8 +167,8 @@ INNER JOIN (SELECT id FROM programmer) AS programmer ON covid.programmer_id = pr
 
 이미 상당히 빠른 조회시간을 가지고 있습니다.
 
-![img_15.png](img_15.png)
-![img_16.png](img_16.png)
+![img_15.png](index_design_img/img_15.png)
+![img_16.png](index_design_img/img_16.png)
 
 실행계획을 보면 Full Table Scan이 정말 필요한건지 인덱스를 확인해봐야합니다.
 
@@ -196,14 +196,14 @@ create index `I_hospitalid_programmerid` on subway.covid (hospital_id, programme
 
 실행시간 0.0120s ~ 0.0080s
 
-![img_18.png](img_18.png)
-![img_19.png](img_19.png)
+![img_18.png](index_design_img/img_18.png)
+![img_19.png](index_design_img/img_19.png)
 
 실행 계획을 보면 hospital의 'I_id_name' 인덱스를 사용하지 않고 name에 걸린 unique키를 사용하고 있는 것을 볼 수 있습니다.
 
 unique 인덱스가 유일한 값임을 보장해주기 때문에 우선적으로 사용된다고 결론내렸습니다.
 
-![img_20.png](img_20.png)
+![img_20.png](index_design_img/img_20.png)
 
 ## B-2. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. 
 **(covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)**
@@ -228,15 +228,15 @@ ORDER BY programmer.id;
 실행시간 0.0400s ~ 0.0080s
 
 현재 programmer 인덱스
-![img_21.png](img_21.png)
+![img_21.png](index_design_img/img_21.png)
 현재 hoapital 인덱스
-![img_22.png](img_22.png)
+![img_22.png](index_design_img/img_22.png)
 현재 covid 인덱스
-![img_23.png](img_23.png)
+![img_23.png](index_design_img/img_23.png)
 
 실행계획
-![img_24.png](img_24.png)
-![img_25.png](img_25.png)
+![img_24.png](index_design_img/img_24.png)
+![img_25.png](index_design_img/img_25.png)
 
 ### 2차 시도
 
@@ -250,7 +250,7 @@ create index `I_pid_hid_id` on covid (programmer_id, hospital_id, id);
 
 실행시간 0.0400s ~ 0.0070s
 
-![img_26.png](img_26.png)
+![img_26.png](index_design_img/img_26.png)
 
 ## B-3. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
@@ -272,8 +272,8 @@ INNER JOIN (SELECT id FROM member WHERE age >= 20 and age < 30) AS member ON cov
 GROUP BY covid.stay;
 ```
 
-![img_28.png](img_28.png)
-![img_27.png](img_27.png)
+![img_28.png](index_design_img/img_28.png)
+![img_27.png](index_design_img/img_27.png)
 
 ### 2차시도
 
@@ -296,7 +296,7 @@ GROUP BY covid.stay;
 ORDER BY null;
 ```
 
-![img_29.png](img_29.png)
+![img_29.png](index_design_img/img_29.png)
 
 covid에 커버링 인덱스를 추가할 수 있습니다.
 
@@ -304,7 +304,7 @@ covid에 커버링 인덱스를 추가할 수 있습니다.
 create index `I_hid_mid_stay` on covid (hospital_id, member_id, stay);
 ```
 
-![img_30.png](img_30.png)
+![img_30.png](index_design_img/img_30.png)
 
 covid에 커버링 인덱스를 추가하면 index range scan를 하고 Using Index를 하는것을 볼 수 있습니다. 
 
@@ -319,7 +319,7 @@ cardinality는 낮지만 일단 추가해봤습니다.
 filtered가 늘어나긴 했지만 성능에 큰 영향을 미치고있진 않습니다.
 (filtered가 왜 늘어났을까요?..)
 
-![img_31.png](img_31.png)
+![img_31.png](index_design_img/img_31.png)
 
 age에 걸었던 인덱스는 큰 효과를 내지 못하므로 사용하지 않았습니다.
 
@@ -341,7 +341,7 @@ GROUP BY programmer.exercise
 ORDER BY null;
 ```
 
-![img_32.png](img_32.png
+![img_32.png](index_design_img/img_32.png
 
 ### 2차 시도
 
@@ -359,8 +359,8 @@ create index `I_member_id_exercise` on programmer (member_id, exercise);
 
 실행시간 0.080s ~ 0.039s
 
-![img_33.png](img_33.png)
-![img_34.png](img_34.png)
+![img_33.png](index_design_img/img_33.png)
+![img_34.png](index_design_img/img_34.png)
 
 * member의 age 컬럼에 인덱스를 걸어봤지만 역시나 큰 효율이 없어서 제거
 * 현 상태에서 programmer 테이블의 member_id 컬럼에 unique 제약조건을 줘서 member_id의 unique 인덱스를 만들면 성능이 약간 떨어지는 이슈가..?

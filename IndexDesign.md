@@ -2,9 +2,13 @@
 
 ## Coding as Hobby
 
-create index hobby_idx on programmer(hobby);  
+```SQL
+CREATE INDEX hobby_idx ON programmer(hobby);  
+```
 
-select hobby, count(*) / (select count(*) from programmer) "Coding as a Hobby" from programmer group by hobby;  
+```SQL
+SELECT hobby, count(*) / (SELECT count(*) FROM programmer) "Coding as a Hobby" FROM programmer GROUP BY hobby;  
+```
 
 ![문제 1 결과](./Index-Design-One-Result.png)  
 <br>
@@ -12,24 +16,30 @@ select hobby, count(*) / (select count(*) from programmer) "Coding as a Hobby" f
 
 ## 각 프로그래머별로 해당하는 병원 이름을 반환하세요
 
-create index idx_hospital on hospital(id);  
-create index idx_covid on covid(programmer_id, hospital_id);  
+```SQL
+CREATE INDEX idx_hospital ON hospital(id);  
+CREATE INDEX idx_covid ON covid(programmer_id, hospital_id);  
+```
 
-select covid.programmer_id, hospital.name from covid, hospital where covid.hospital_id = hospital.id;  
-
+```SQL
+SELECT covid.programmer_id, hospital.name FROM covid, hospital WHERE covid.hospital_id = hospital.id;  
+```
 ![문제 2 결과](./Index-Design-Two-Result.png)  
 <br>
 ![문제 2 분석](./Index-Design-Two-Analysis.png)  
 
 ## 프로그래밍이 취미인 학생 혹은 주니어(0~2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요.  
 
-create index idx_hospital on hospital(id);  
-create index idx_covid on covid(programmer_id, hospital_id);  
-create index idx_programmer on programmer(hobby, years_coding);  
-
-select d.id, h.name, d.hobby, d.dev_type, d.years_coding from  
-(select p.id, p.hobby, p.dev_type, p.years_coding from programmer p where p.hobby = "yes" or p.years_coding = "0-2 year" order by id) d,  
-(select covid.programmer_id id, hospital.name name from covid, hospital where covid.hospital_id = hospital.id) h where d.id = h.id;  
+```SQL
+CREATE INDEX idx_hospital ON hospital(id);  
+CREATE INDEX idx_covid ON covid(programmer_id, hospital_id);  
+CREATE INDEX idx_programmer ON programmer(hobby, years_coding);  
+```
+```SQL
+SELECT d.id, h.name, d.hobby, d.dev_type, d.years_coding FROM  
+(SELECT p.id, p.hobby, p.dev_type, p.years_coding FROM programmer p WHERE p.hobby = "yes" OR p.years_coding = "0-2 year" ORDER BY id) d,  
+(SELECT covid.programmer_id id, hospital.name name FROM covid, hospital WHERE covid.hospital_id = hospital.id) h WHERE d.id = h.id;  
+```
 
 ![문제 3 결과](./Index-Design-Three-Result.png)  
 <br>
@@ -42,16 +52,20 @@ select d.id, h.name, d.hobby, d.dev_type, d.years_coding from
 그 때문에 [sql-server-index-on-text-column](https://stackoverflow.com/questions/830241/sql-server-index-on-text-column)라는 글의 도움을 받아,   Text들을 varchar(255)로 형태로 DB를 수정한 다음 Index를 만들어 실행하게 되었습니다.  
 또한, 여기서부터 성능 개선이 잘 되지 않아서, 서브 쿼리 대신에 join을 적극적으로 사용하게 되었습니다.  
 
-alter table hospital modify name VARCHAR(255);  
-create index idx_hospital on hospital(id);  
-create index idx_covid on covid(programmer_id, hospital_id);  
-create index idx_programmer on programmer(country, member_id, id);  
-create index idx_member on member(age, id);  
+```SQL
+ALTER TABLE hospital MODIFY name VARCHAR(255);  
+CREATE INDEX idx_hospital ON hospital(id);  
+CREATE INDEX idx_covid ON covid(programmer_id, hospital_id);  
+CREATE INDEX idx_programmer ON programmer(country, member_id, id);  
+CREATE INDEX idx_member ON member(age, id);  
+```
 
-select h.stay, count(*) from  
-(select p.id, p.country from programmer p join member as m on m.id = p.member_id where m.age between 20 and 29 and p.country ="India") d,  
-(select c.programmer_id id, hp.name, c.stay stay from covid c join hospital as hp on c.hospital_id = hp.id where hp.name= "서울대병원") h  
-where d.id = h.id group by h.stay;  
+```SQL
+SELECT h.stay, count(*) FROM  
+(SELECT p.id, p.country FROM programmer p JOIN member AS m ON m.id = p.member_id WHERE m.age BETWEEN 20 AND 29 AND p.country ="India") d,  
+(SELECT c.programmer_id id, hp.name, c.stay stay FROM covid c JOIN hospital AS hp ON c.hospital_id = hp.id WHERE hp.name= "서울대병원") h  
+WHERE d.id = h.id GROUP BY h.stay;  
+```
 
 ![문제 4 결과](./Index-Design-Four-Result.png)  
 <br>
@@ -59,17 +73,22 @@ where d.id = h.id group by h.stay;
 
 
 ## 서울대 병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요 .
-alter table programmer modify exercise varchar(255);  
-create index idx_hospital on hospital(name, id);  
-create index idx_covid on covid(programmer_id, hospital_id);  
-create index idx_programmer on programmer(member_id, id, exercise);  
-create index idx_member on member(age, id);  
 
-select d.exercise, count(*) from  
-(select m.id, p.exercise from programmer p  
-join (select id from member where age between 30 and 39) as m on m.id = p.member_id) d  
-join (select c.member_id id, c.stay stay from covid c, (select id from hospital where name = "서울대병원") h  
-where c.hospital_id = h.id) hp on d.id = hp.id group by d.exercise;  
+```SQL
+ALTER TABLE programmer MODIFY exercise VARCHAR(255);  
+CREATE INDEX idx_hospital ON hospital(name, id);  
+CREATE INDEX idx_covid ON covid(programmer_id, hospital_id);  
+CREATE INDEX idx_programmer ON programmer(member_id, id, exercise);  
+CREATE INDEX idx_member ON member(age, id);  
+```
+
+```SQL
+SELECT d.exercise, count(*) FROM  
+(SELECT m.id, p.exercise FROM programmer p  
+JOIN (SELECT id FROM member WHERE age BETWEEN 30 AND 39) AS m ON m.id = p.member_id) d  
+JOIN (SELECT c.member_id id, c.stay stay FROM covid c, (SELECT id FROM hospital WHERE name = "서울대병원") h  
+WHERE c.hospital_id = h.id) hp ON d.id = hp.id GROUP BY d.exercise;  
+```
 
 ![문제 5 결과](./Index-Design-Five-Result.png)  
 <br>

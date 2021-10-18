@@ -45,8 +45,8 @@ ORDER BY
 ![A-explain](images/image1-3.png)
 
 ### 실행 결과
-![A-time](images/image1-1.png)
 ![A-result](images/image1-2.png)
+![A-time](images/image1-1.png)
 
 ### 변경 사항
 * 사원출입기록 - 사원번호 인덱싱
@@ -81,8 +81,8 @@ ORDER BY
 ![B1-explain](images/image3-2.png)
 
 ### 실행 결과
-![B1-time](images/image3-1.png)
 ![B1-result](images/image3-3.png)
+![B1-time](images/image3-1.png)
 
 ### 변경 사항
 * programmer - id PK로 지정
@@ -205,6 +205,8 @@ GROUP BY
 
 ### 변경 후 실행 결과
 ![B-time2](images/image6-4.png)
+
+## 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 ### 쿼리문
 ```sql

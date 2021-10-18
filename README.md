@@ -219,7 +219,7 @@ GROUP BY c.stay;
 ### INDEX 추가
 ```sql
 CREATE INDEX `idx_pid_country` ON `subway`.`programmer` (id, country);
-CREATE INDEX `idx_cid_stay` ON `subway`.`covid` (hospital_id, member_id, programmer_id, stay);
+CREATE INDEX `idx_hid_mid_pid_stay` ON `subway`.`covid` (hospital_id, member_id, programmer_id, stay);
 ```
 
 #### 결과
@@ -253,7 +253,7 @@ GROUP  BY p.exercise;
 ### INDEX 추가
 ```sql
 CREATE INDEX `idx_pid_country` ON `subway`.`programmer` (id, exercise(255));
-CREATE INDEX `idx_cid_stay` ON `subway`.`covid` (hospital_id, member_id, programmer_id);
+CREATE INDEX `idx_hid_mid_pid` ON `subway`.`covid` (hospital_id, member_id, programmer_id);
 ```
 
 #### 결과

@@ -1,3 +1,8 @@
+미션 수행 결과
+- https://jujubebat.notion.site/30-user-Exercise-1e96dcb7b86c4fcdb2304d9d2a745030
+
+
+
 # 🚀 조회 성능 개선하기
 
 ## A. 쿼리 연습

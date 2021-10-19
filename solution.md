@@ -57,13 +57,12 @@ ALTER TABLE 사원출입기록 ADD INDEX I_입출입구분_사원번호_지역 (
 인덱스 구성
 ```sql
 ALTER TABLE programmer ADD INDEX I_hobby (hobby);
-ALTER TABLE programmer ADD INDEX I_dev_type_hobby (dev_type(200), hobby);
-ALTER TABLE programmer ADD INDEX I_years_coding (years_coding);
-ALTER TABLE programmer ADD INDEX I_country (country);
-ALTER TABLE programmer ADD CONSTRAINT PRIMARY KEY (id);
+ALTER TABLE programmer ADD INDEX I_country_id_member_id (country, id, member_id);
 ALTER TABLE covid ADD INDEX I_programmer_id_hospital_id_stay (programmer_id, hospital_id, stay);
-ALTER TABLE hospital ADD INDEX I_name (name(200));
+ALTER TABLE hospital ADD INDEX I_name_id (name(200), id);
+ALTER TABLE member ADD INDEX I_age_id (age, id);
 ALTER TABLE hospital ADD CONSTRAINT PRIMARY KEY (id);
+ALTER TABLE programmer ADD CONSTRAINT PRIMARY KEY (id);
 ```
 
 ## Coding as a Hobby 와 같은 결과를 반환하세요.
@@ -83,10 +82,10 @@ ORDER BY NULL;
 
 ![image](images/image6.png)
 
-## 프로그래머별로 해당하는 병원 이름을 반환하세요.
+## 프로그래머별로 해당하는 병원 이름을 반환하세요. (covid.id, hospital.name)
 
 ```sql
-SELECT covid.programmer_id, hospital.name 
+SELECT covid.id, hospital.name 
 FROM covid
     JOIN hospital ON hospital.id = covid.hospital_id
 WHERE covid.programmer_id IS NOT NULL;
@@ -100,21 +99,15 @@ WHERE covid.programmer_id IS NOT NULL;
 
 ![image](images/image8.png)
 
-## 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. 
+## 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding) 
 
 ```sql
-SELECT young_programmer.id, hospital.name
+SELECT covid.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding
 FROM covid
-    JOIN (SELECT programmer.id
-        FROM programmer
-        WHERE programmer.dev_type = 'Student' 
-	        AND programmer.hobby = 'Yes'
-        UNION ALL
-        SELECT programmer.id
-        FROM programmer
-        WHERE programmer.years_coding = '0-2 years') young_programmer ON young_programmer.id = covid.programmer_id
+    JOIN programmer ON programmer.id = covid.programmer_id
     JOIN hospital ON hospital.id = covid.hospital_id
-ORDER BY young_programmer.id;
+WHERE (programmer.dev_type = 'Student' AND programmer.hobby = 'Yes') OR programmer.years_coding = '0-2 years'
+ORDER BY programmer.id;
 ```
 
 - 실행 계획
@@ -125,15 +118,17 @@ ORDER BY young_programmer.id;
 
 ![image](images/image10.png)
 
-## 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.
+## 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
 ```sql
 SELECT covid.stay, count(1) as count
-FROM hospital
-    INNER JOIN covid ON covid.hospital_id = hospital.id 
+FROM covid
     INNER JOIN programmer ON programmer.id = covid.programmer_id
+    INNER JOIN hospital ON hospital.id = covid.hospital_id
+    INNER JOIN member ON member.id = programmer.member_id
 WHERE hospital.name = '서울대병원'
     AND programmer.country = 'India'
+    AND member.age BETWEEN 20 AND 29
 GROUP BY covid.stay
 ORDER BY NULL;
 ```
@@ -153,7 +148,9 @@ SELECT programmer.exercise, count(1) as count
 FROM hospital
     INNER JOIN covid ON covid.hospital_id = hospital.id
     INNER JOIN programmer ON programmer.id = covid.programmer_id
+    INNER JOIN member ON member.id = programmer.member_id
 WHERE hospital.name = '서울대병원'
+	AND member.age BETWEEN 30 AND 39
 GROUP BY programmer.exercise
 ORDER BY NULL;
 ```

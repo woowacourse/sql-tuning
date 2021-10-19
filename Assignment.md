@@ -128,7 +128,8 @@ select covid.stay, avg(member.age) as average_age, count(*) as total_count
         inner join programmer on covid.programmer_id = programmer.id
         inner join member on member.id = covid.member_id
     where hospital.name = '서울대병원' and programmer.country = 'India' and member.age between 20 and 29
-    group by covid.stay;
+    group by covid.stay
+    order by null;
 ```
 
 * hospital 테이블

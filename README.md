@@ -214,7 +214,11 @@ FROM   covid
                     ON covid.member_id = age.id
          INNER JOIN programmer
                     ON covid.programmer_id = programmer.id
-GROUP  BY programmer.exercise; 
+GROUP  BY programmer.exercise;
+
+CREATE INDEX `hospital_index` ON hospital (name);
+CREATE INDEX `programmer_index` ON programmer (id);
+CREATE INDEX `covid_index` ON covid (hospital_id, programmer_id, member_id);
 ```
 
 ### 쿼리 결과

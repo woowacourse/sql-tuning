@@ -61,7 +61,6 @@ Visual Explain 확인 결과 `부서`와 `사원출입기록`에서 `Full Table 
 
 ```sql
 CREATE INDEX `사원출입기록_인덱스` ON `tuning`.`사원출입기록` (사원번호);
-CREATE INDEX `부서_인덱스` ON `tuning`.`부서` (부서번호, 비고);
 ```
 
 ### 시간
@@ -102,9 +101,8 @@ CREATE INDEX `programmer_index` ON programmer (hobby);
 SELECT covid.id,
        hospital.name
 FROM   covid
-         LEFT OUTER JOIN hospital
+         INNER JOIN hospital
                          ON hospital.id = covid.hospital_id
-WHERE  covid.programmer_id IS NOT NULL;
 
 CREATE INDEX `covid_index` ON covid (hospital_id); 
 ```

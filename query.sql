@@ -46,9 +46,9 @@ ALTER TABLE covid ADD FOREIGN KEY(hospital_id) REFERENCES hospital(id);
 
 SELECT covid.id, hospital.name
   FROM covid
-    JOIN programmer ON covid.programmer_id = programmer.id
     JOIN hospital ON covid.hospital_id = hospital.id;
--- 0.0056 sec
+WHERE covid.programmer_id IS NOT NULL;
+-- 0.0025 sec
 
 
 -- 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬

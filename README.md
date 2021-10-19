@@ -178,12 +178,22 @@ create index I_hobby on programmer (hobby);
 #### B-2 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
 - 조회 쿼리
+```sql
+select covid.id, hospital.name
+from programmer
+join covid on covid.programmer_id = programmer.id
+join hospital on hospital.id = covid.hospital_id;
+```
 
 - 인덱스 적용 전
+Duration은 커넥션 타임아웃이 떴음
+<img width="453" alt="스크린샷 2021-10-18 오후 5 23 44" src="https://user-images.githubusercontent.com/56679885/137697769-bf7e3bbd-48ba-435b-a0a5-6e83f4ed86be.png">
+<img width="1050" alt="스크린샷 2021-10-18 오후 5 23 53" src="https://user-images.githubusercontent.com/56679885/137697773-f539427a-a7b5-46fb-8b42-4b050b544891.png">
 
 - 인덱스 생성
 
 - 인덱스 적용 후
+
 
 
 #### B-3 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)

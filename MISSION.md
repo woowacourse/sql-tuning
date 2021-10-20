@@ -171,6 +171,13 @@
             ON covid.hospital_id = hospital.id
     ORDER BY junior_programmer.id;
     ```
+    - 사실 duration은 16ms로 앞서 order by를 하기전과 같아요
+        - ![](./image/b-3-after-feedback-time.PNG)
+    - 실행계획을 보면 다음과 같아요
+        - Order의 과정에서 filesort를 실행하거나 tmp_table등을 만들지 않아 앞서 정렬하지 않았던 쿼리랑 성능이 같았다고 보여요.
+            - 가령 다른 필드 ex. ORDER BY programmer.hobby 등을 실행하면 filesort가 일어나거나 tmp_table을 만들거든요. 
+        - 아마 programmer가 드라이빙 테이블로써 id 순으로 정렬된 상태로 계산했기 때문에 아니였을까 합니다!
+        - ![](./image/b-3-after-feedback-execution.PNG)
 
 ### [4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)]
 - **결과**
@@ -218,7 +225,7 @@
 - **구막의 피드백**
     - covid의 모수를 줄여서 가져오는 시도를 했으나,,, 95ms에서 더 줄지 않는군요 😭
     ```sql
-    select covid.stay, count(covid.stay) AS `인원수`
+    SELECT covid.stay, count(covid.stay) AS `인원수`
     FROM (SELECT programmer_id, hospital_id, member_id, stay FROM covid) AS covid
         JOIN (SELECT id FROM hospital WHERE name = '서울대병원') AS hospital
             ON hospital.id = covid.hospital_id

@@ -343,6 +343,30 @@ filtered가 늘어나긴 했지만 성능에 큰 영향을 미치고있진 않�
 
 age에 걸었던 인덱스는 큰 효과를 내지 못하므로 사용하지 않았습니다.
 
+## 3차 시도(India 라는 조건을 빼먹어서 추가)
+
+```mysql
+SELECT covid.stay, count(*)
+FROM (SELECT id FROM hospital WHERE name = '서울대병원') AS hospital
+INNER JOIN (SELECT member_id, hospital_id, programmer_id, stay FROM covid WHERE member_id > 0) AS covid ON covid.hospital_id = hospital.id
+INNER JOIN programmer ON covid.programmer_id = programmer.id
+INNER JOIN member ON covid.member_id = member.id
+WHERE programmer.country = 'India' and age < 30 and age >= 20
+GROUP BY covid.stay
+ORDER BY null;
+```
+
+커버링 인덱스 수정
+
+실행시간 0.100s ~ 0.040s
+
+```mysql
+create index `I_hid_pid_mid_stay` on covid (hospital_id, programmer_id, member_id, stay);
+```
+
+![img_35.png](index_design_img/img_35.png)
+![img_36.png](index_design_img/img_36.png)
+
 ## B-5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 ### 1차 시도

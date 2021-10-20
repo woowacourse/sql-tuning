@@ -152,7 +152,7 @@ FROM programmer
 GROUP BY hobby;
 ```
 
-- 인덱스 적용 전
+- **인덱스 적용 전**
 
 <img width="179" alt="스크린샷 2021-10-15 오후 9 32 17" src="https://user-images.githubusercontent.com/56679885/137487258-8f10adf0-8143-4f62-94a1-b9f73a629772.png">
 
@@ -160,13 +160,13 @@ GROUP BY hobby;
 
 <img width="987" alt="스크린샷 2021-10-15 오후 9 30 00" src="https://user-images.githubusercontent.com/56679885/137486922-c15080ef-abc9-4697-b858-3658c84088ec.png">
 
-- 인덱스 생성
+- **인덱스 생성**
 
 ```sql
 create index I_hobby on programmer (hobby);
 ```
 
-- 인덱스 적용 후
+- **인덱스 적용 후**
 
 <img width="176" alt="스크린샷 2021-10-15 오후 9 32 43" src="https://user-images.githubusercontent.com/56679885/137487325-e0e01477-c3d6-4239-931f-e89f558b9f08.png">
 
@@ -177,7 +177,8 @@ create index I_hobby on programmer (hobby);
 
 #### B-2 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
-- 조회 쿼리
+- **조회 쿼리**
+
 ```sql
 select covid.id, hospital.name
 from programmer
@@ -185,46 +186,78 @@ join covid on covid.programmer_id = programmer.id
 join hospital on hospital.id = covid.hospital_id;
 ```
 
-- 인덱스 적용 전
+- **인덱스 적용 전**
+
 Duration은 커넥션 타임아웃이 떴음
+
 <img width="453" alt="스크린샷 2021-10-18 오후 5 23 44" src="https://user-images.githubusercontent.com/56679885/137697769-bf7e3bbd-48ba-435b-a0a5-6e83f4ed86be.png">
 <img width="1050" alt="스크린샷 2021-10-18 오후 5 23 53" src="https://user-images.githubusercontent.com/56679885/137697773-f539427a-a7b5-46fb-8b42-4b050b544891.png">
 
-- 인덱스 생성
+- **인덱스 생성**
 
-- 인덱스 적용 후
+```sql
+create index I_programmer_id on covid (programmer_id);
+```
 
+- **인덱스 적용 후**
 
+<img width="128" alt="b2-인덱스 Duration" src="https://user-images.githubusercontent.com/56679885/137862614-190df63b-967b-401d-ade2-d831f67b75bd.png">
+<img width="496" alt="스크린샷 2021-10-19 오후 4 25 20" src="https://user-images.githubusercontent.com/56679885/137862807-8fbdb127-a1aa-482e-a9a9-b4e83968bfa2.png">
+<img width="1045" alt="스크린샷 2021-10-19 오후 4 25 36" src="https://user-images.githubusercontent.com/56679885/137862841-3be0e0c5-c7a9-4397-943c-6e864cea1b3a.png">
 
 #### B-3 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
-- 조회 쿼리
+- **조회 쿼리**
 
-- 인덱스 적용 전
+```sql
+select covid.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding
+from programmer
+inner join covid on programmer.id = covid.programmer_id
+inner join hospital on covid.hospital_id = hospital.id
+where (programmer.hobby = 'yes' and programmer.student like 'yes%')
+or programmer.years_coding = '0-2 years';
+```
 
-- 인덱스 생성
+- **인덱스 적용 전**
 
-- 인덱스 적용 후
+Duration은 커넥션 타임아웃이 떴음
+
+<img width="458" alt="스크린샷 2021-10-20 오후 8 21 08" src="https://user-images.githubusercontent.com/56679885/138083639-c66d200e-a8eb-4452-8f49-787bfea4215f.png">
+<img width="1069" alt="스크린샷 2021-10-20 오후 8 21 26" src="https://user-images.githubusercontent.com/56679885/138083671-cd76554f-b50f-4044-b965-c7b6dcf3fc2b.png">
+
+- **인덱스 생성**
+
+```sql
+create unique index I_programmer_id on covid (programmer_id);
+```
+
+- **인덱스 적용 후**
+
+<img width="149" alt="스크린샷 2021-10-20 오후 8 47 14" src="https://user-images.githubusercontent.com/56679885/138086889-cf383f0e-b8f4-4c40-819b-58b83503cabc.png">
+<img width="498" alt="스크린샷 2021-10-20 오후 8 47 30" src="https://user-images.githubusercontent.com/56679885/138086911-def2916c-b777-4285-bf6d-d11c8c622c31.png">
+<img width="1333" alt="스크린샷 2021-10-20 오후 8 48 09" src="https://user-images.githubusercontent.com/56679885/138086987-c614c66a-5406-44fc-a592-5ea1b565f970.png">
 
 #### B-4 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
-- 조회 쿼리
+- **조회 쿼리**
 
-- 인덱스 적용 전
 
-- 인덱스 생성
 
-- 인덱스 적용 후
+- **인덱스 적용 전**
+
+- **인덱스 생성**
+
+- **인덱스 적용 후**
 
 #### B-5 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
-- 조회 쿼리
+- **조회 쿼리**
 
-- 인덱스 적용 전
+- **인덱스 적용 전**
 
-- 인덱스 생성
+- **인덱스 생성**
 
-- 인덱스 적용 후
+- **인덱스 적용 후**
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

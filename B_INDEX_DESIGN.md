@@ -205,10 +205,8 @@ unique 인덱스가 유일한 값임을 보장해주기 때문에 우선적으�
 
 ![img_20.png](index_design_img/img_20.png)
 
-## B-2. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. 
+## B-3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. 
 **(covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)**
-
-
 
 ### 1차 시도
 
@@ -228,13 +226,18 @@ ORDER BY programmer.id;
 실행시간 0.0400s ~ 0.0080s
 
 현재 programmer 인덱스
+
 ![img_21.png](index_design_img/img_21.png)
+
 현재 hoapital 인덱스
+
 ![img_22.png](index_design_img/img_22.png)
+
 현재 covid 인덱스
+
 ![img_23.png](index_design_img/img_23.png)
 
-실행계획
+실행계획   
 ![img_24.png](index_design_img/img_24.png)
 ![img_25.png](index_design_img/img_25.png)
 
@@ -252,7 +255,24 @@ create index `I_pid_hid_id` on covid (programmer_id, hospital_id, id);
 
 ![img_26.png](index_design_img/img_26.png)
 
-## B-3. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+### 3차 시도(잘못된 조건 수정)
+
+programmer테이블에 대한 조건이 잘못 설정되서 수정했습니다!
+
+```mysql
+SELECT covid.id, hospital.name, programmer.hobby, programmer.dev_type, programmer.years_coding
+FROM (SELECT id, hobby, dev_type, years_coding 
+		FROM programmer 
+		WHERE (student like 'yes%' AND hobby = 'yes') OR years_coding = '0-2 years')
+AS programmer
+INNER JOIN (SELECT id, hospital_id, programmer_id FROM covid WHERE programmer_id > 0) AS covid ON programmer.id = covid.programmer_id
+INNER JOIN hospital ON covid.hospital_id = hospital.id
+ORDER BY programmer.id;
+```
+
+실행시간 0.060s ~ 0.010s
+
+## B-4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
 ### 1차 시도
 
@@ -323,7 +343,7 @@ filtered가 늘어나긴 했지만 성능에 큰 영향을 미치고있진 않�
 
 age에 걸었던 인덱스는 큰 효과를 내지 못하므로 사용하지 않았습니다.
 
-## B-4. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+## B-5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 ### 1차 시도
 

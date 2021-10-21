@@ -241,13 +241,45 @@ create unique index I_programmer_id on covid (programmer_id);
 
 - **조회 쿼리**
 
-
+```sql
+select covid.stay, count(member.id)
+from programmer
+join member on member.id = programmer.member_id
+join covid on covid.programmer_id = programmer.id
+join hospital on hospital.id = covid.hospital_id
+where 
+member.age between 20 and 29
+and programmer.country = 'india'
+and hospital.name = '서울대병원'
+group by covid.stay;
+```
 
 - **인덱스 적용 전**
 
+Duration은 커넥션 타임아웃이 떴음
+
+<img width="625" alt="스크린샷 2021-10-21 오후 6 00 57" src="https://user-images.githubusercontent.com/56679885/138246053-b843ff72-2b9e-4e2a-96bd-bc53b7d11e88.png">
+
+<img width="1272" alt="스크린샷 2021-10-21 오후 6 01 12" src="https://user-images.githubusercontent.com/56679885/138246063-3b04c977-c416-45a0-b076-242d59cba8bb.png">
+
 - **인덱스 생성**
 
+```sql
+create index i_covid on covid (programmer_id, hospital_id);
+
+create index i_programmer on programmer (country, id, member_id);
+
+create index i_member on member (id, age);
+```
+
 - **인덱스 적용 후**
+
+<img width="163" alt="스크린샷 2021-10-21 오후 6 08 43" src="https://user-images.githubusercontent.com/56679885/138247264-de1cc099-781c-411a-ae24-c90be4c864df.png">
+
+<img width="713" alt="스크린샷 2021-10-21 오후 6 08 58" src="https://user-images.githubusercontent.com/56679885/138247300-235eedfd-3001-4ba9-a455-bc19071d073a.png">
+
+<img width="1291" alt="스크린샷 2021-10-21 오후 6 09 19" src="https://user-images.githubusercontent.com/56679885/138247347-eb14ebab-2908-4e83-b4d8-9c36f8c93b48.png">
+
 
 #### B-5 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 

@@ -128,7 +128,7 @@ GROUP BY hobby, count;
 CREATE INDEX `idx_programmer_hobby`  ON `subway`.`programmer` (hobby);
 ```
 
-추가적으로 `전체 프로그래머 수를 구하기 위한 서브쿼리`는 hobby 인덱스가 아닌 unique한 값을 이용해주면 성능 향상이 있을 것이라 생각해 `programmer` 테이블의 id에 pk와 unique를 걸어줬습니다.
+추가적으로 `전체 프로그래머 수를 구하기 위한 서브쿼리`는 hobby 인덱스가 아닌 클러스터링 인덱스를 사용하면 검색이 빠를 것이라 생각하여 `programmer` 테이블의 id에 pk와 unique를 걸어줬습니다.
 ```sql
 ALTER TABLE `subway`.`programmer` 
 CHANGE COLUMN `id` `id` BIGINT(20) NOT NULL,
@@ -185,7 +185,9 @@ ADD UNIQUE INDEX `id_UNIQUE` (`id` ASC);
 
 `covid`는 여전히 Full Table Scan을 하고 있기때문에 `covid`에도 인덱스를 걸어줬습니다. `programmer`의 id와 `programmer_id`를 통해, `hospital`의 id와 `hospital_id`를 통해 JOIN하고 있고 `programmer`의 id와 `hospital`의 id는 이미 인덱스로 등록되어 있으므로, (`programmer_id`, `hospital_id`) 인덱스를 만들어줬습니다.
 
-❓ 실행계획을 보면 `hospital`이 먼저 실행되기 때문에 `covid` 인덱스를 (`hospital_id`, `programmer_id`) 순으로 만들어야되지 않을까 라고 생각했었는데, 이 순서로 하니 동작하지 않았습니다. 왜 `programmer_id`를 인덱스로 넣어야지 잘 동작하는지 모르겠습니다. 😭
+~~❓ 실행계획을 보면 `hospital`이 먼저 실행되기 때문에 `covid` 인덱스를 (`hospital_id`, `programmer_id`) 순으로 만들어야되지 않을까 라고 생각했었는데, 이 순서로 하니 동작하지 않았습니다. 왜 `programmer_id`를 인덱스로 넣어야지 잘 동작하는지 모르겠습니다. 😭~~
+
+다시 처음부터 해보니 (`hospital_id`, `programmer_id`)도 정상 동작했습니다.(정신이 없었나ㅎ..😭) 다만 이 경우 `hospital`은 Full Table Scan을 하게 됩니다. 옵티마이저에 의해 `hospital`을 먼저 탐색하게 되어 그런 것 같습니다. 또 order by를 해주지 않는 이상 `hospital_id`를 기준으로 정렬이 되어 `programmer_id`로 정렬한 결과를 보지 못합니다. 반면에 (`programmer_id`, `hospital_id`)로 인덱스를 걸어주면 `programmer_id`로 정렬된 값이 잘 나오게 됩니다.
 
 ```sql
 CREATE INDEX `idx_covid_programmer_id_hospital_id`  ON `subway`.`covid` (programmer_id, hospital_id);
@@ -268,11 +270,11 @@ CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL;
 ```sql
 CREATE INDEX `idx_hospital_name` ON `subway`.`hospital` (name);
 ```
-실행계획을 보면 두 개의 인덱스를 추가하고 나서 실행 순서가 바뀌면서 멀쩡하던 `covid`가 Full Table Scan으로 변했습니다.
+실행계획을 보면 두 개의 인덱스를 추가하고 나서 실행 순서가 바뀌면서 멀쩡하던 `covid`가 Full Table Scan으로 변했습니다.(옵티마이저에 의해 실행순서가 바뀌면서 인덱스를 사용하지 못하게 되지 않았을까 추측하고 있습니다. 혹시 알고 계시다면 알려주세요!🙏)
 
 <img width="1153" alt="스크린샷 2021-10-14 오후 5 13 58" src="https://user-images.githubusercontent.com/45876793/137278157-f3d4f6a3-e312-459e-82e6-0d567fe1cef8.png">
 
-`covid`는 먼저 `hospital_id`, `programmer_id`, `member_id`를 통해 JOIN 하기 때문에 (`hospital_id`, `programmer_id`, `member_id`)인덱스를 만들어줬습니다.
+`covid`는 먼저 `hospital_id`, `programmer_id`, `member_id`를 통해 JOIN 하기 때문에 (`hospital_id`, `programmer_id`, `member_id`)인덱스를 만들어줬습니다. (복합 인덱스는 지정한 순서대로 조건문을 타야지 인덱스가 적용되어 실행계획을 보고 `hospital_id`, `programmer_id`, `member_id` 순으로 복합인덱스를 생성했습니다. 제 생각에는 이 인덱스가 생긴 후에도 옵티마이저에 의해 실행순서의 변화가 없어서 잘 동작한 것 같습니다.)
 
 ```sql
 CREATE INDEX `idx_covid_hospital_id_programmer_id_member_id`  ON `subway`.`covid` (hospital_id, programmer_id, member_id);

@@ -285,11 +285,43 @@ create index i_member on member (id, age);
 
 - **조회 쿼리**
 
+```sql
+select programmer.exercise, count(programmer.id)
+from hospital
+join covid on covid.hospital_id = hospital.id
+join member on member.id = covid.member_id
+join programmer on programmer.id = covid.programmer_id
+where hospital.name = '서울대병원'
+and member.age between 30 and 39
+group by programmer.exercise;
+```
+
 - **인덱스 적용 전**
+
+<img width="166" alt="스크린샷 2021-10-21 오후 6 22 14" src="https://user-images.githubusercontent.com/56679885/138249402-d23d3238-5aa0-4292-bccc-4328cf4db3b9.png">
+
+<img width="622" alt="스크린샷 2021-10-21 오후 6 23 19" src="https://user-images.githubusercontent.com/56679885/138249615-671ca36f-45b8-456e-82b9-cfdf7bff8da8.png">
+
+<img width="1255" alt="스크린샷 2021-10-21 오후 6 22 57" src="https://user-images.githubusercontent.com/56679885/138249535-4a93066a-b5dc-49d8-a9c7-c3f6a34fed9a.png">
 
 - **인덱스 생성**
 
+```sql
+create index i_covid on covid (hospital_id, programmer_id);
+drop index i_covid on covid;
+
+ALTER TABLE programmer 
+CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
+ADD PRIMARY KEY (id);
+```
+
 - **인덱스 적용 후**
+
+<img width="163" alt="스크린샷 2021-10-21 오후 7 59 32" src="https://user-images.githubusercontent.com/56679885/138264475-d38cde04-bdf8-44e9-b720-57a5946fbb54.png">
+
+<img width="678" alt="스크린샷 2021-10-21 오후 8 02 20" src="https://user-images.githubusercontent.com/56679885/138264844-38ed3274-e59b-417b-aa75-7d97bf53c9ab.png">
+
+<img width="1248" alt="스크린샷 2021-10-21 오후 8 02 34" src="https://user-images.githubusercontent.com/56679885/138264872-ce8f3120-f5bd-44ac-93db-11214acd0988.png">
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

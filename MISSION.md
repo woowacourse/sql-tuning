@@ -75,57 +75,57 @@ FROM (
         현역_급여.연봉,
         현역_직급.직급명
     FROM (
-		SELECT
-			사원번호,
+        SELECT
+            사원번호,
             부서번호
-		FROM
-			부서관리자
-		WHERE
-			current_date() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자
-	) AS 현역_부서관리자
-		JOIN 사원 ON 현역_부서관리자.사원번호 = 사원.사원번호
-		JOIN (
-			SELECT
-				사원번호,
+        FROM
+            부서관리자
+        WHERE
+            current_date() BETWEEN 부서관리자.시작일자 AND 부서관리자.종료일자
+    ) AS 현역_부서관리자
+        JOIN 사원 ON 현역_부서관리자.사원번호 = 사원.사원번호
+        JOIN (
+            SELECT
+                사원번호,
                 연봉
-			FROM
-				급여 
-			WHERE
-				current_date() BETWEEN 급여.시작일자 AND 급여.종료일자
-		) AS 현역_급여 ON 현역_부서관리자.사원번호 = 현역_급여.사원번호
-		JOIN (
-			SELECT
-				사원번호,
-                직급명
-			FROM 
-				직급
+            FROM
+                급여 
             WHERE
-				current_date() BETWEEN 직급.시작일자 AND 직급.종료일자
-		) AS 현역_직급 ON 현역_부서관리자.사원번호 = 현역_직급.사원번호
-		JOIN (
-			SELECT
-				부서번호
-			FROM 
-				부서 
-			WHERE 
-				비고 = 'active'
-		) AS 운영부서 ON 현역_부서관리자.부서번호 = 운영부서.부서번호
+                current_date() BETWEEN 급여.시작일자 AND 급여.종료일자
+        ) AS 현역_급여 ON 현역_부서관리자.사원번호 = 현역_급여.사원번호
+        JOIN (
+            SELECT
+                사원번호,
+                직급명
+            FROM 
+                직급
+            WHERE
+                current_date() BETWEEN 직급.시작일자 AND 직급.종료일자
+        ) AS 현역_직급 ON 현역_부서관리자.사원번호 = 현역_직급.사원번호
+        JOIN (
+            SELECT
+                부서번호
+            FROM 
+                부서 
+            WHERE 
+                비고 = 'active'
+        ) AS 운영부서 ON 현역_부서관리자.부서번호 = 운영부서.부서번호
     ORDER BY
         현역_급여.연봉 DESC
     LIMIT
         5
 ) AS 고연봉관리자
     JOIN (
-		SELECT
-			사원번호,
+        SELECT
+            사원번호,
             입출입시간,
             지역,
             입출입구분
-		FROM
-			사원출입기록
-		WHERE
-			입출입구분 = 'O'
-	) AS 사원출입기록 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
+        FROM
+            사원출입기록
+        WHERE
+            입출입구분 = 'O'
+    ) AS 사원출입기록 ON 고연봉관리자.사원번호 = 사원출입기록.사원번호
 ORDER BY
     고연봉관리자.연봉 DESC;
 ```
@@ -205,16 +205,16 @@ SELECT
     hospital.name as 'hospital name'
 FROM
     (
-		SELECT 
-			id,
+        SELECT 
+            id,
             programmer_id,
             hospital_id
-		FROM
-			covid
+        FROM
+            covid
         WHERE
-			programmer_id IS NOT NULL
-	) as covid_info
-		JOIN hospital ON covid_info.hospital_id = hospital.id
+            programmer_id IS NOT NULL
+    ) as covid_info
+        JOIN hospital ON covid_info.hospital_id = hospital.id
 ;
 ```
 
@@ -272,20 +272,20 @@ SELECT
 FROM
     covid
         JOIN (
-			SELECT
-				id,
-				hobby,
+            SELECT
+                id,
+                hobby,
                 dev_type,
                 years_coding
-			FROM
-				programmer
-			WHERE
-				hobby = 'Yes'
-				AND (
-					(student != "No" AND programmer.student != "NA")
-					OR programmer.years_coding = '0-2 years'
-				)
-		) AS enjoying_programmer ON covid.programmer_id = enjoying_programmer.id
+            FROM
+                programmer
+            WHERE
+                hobby = 'Yes'
+                AND (
+                    (student != "No" AND programmer.student != "NA")
+                    OR programmer.years_coding = '0-2 years'
+                )
+        ) AS enjoying_programmer ON covid.programmer_id = enjoying_programmer.id
         JOIN hospital ON hospital.id = covid.hospital_id
 ;
 ```
@@ -336,29 +336,29 @@ SELECT
 FROM
     covid
         JOIN (
-			SELECT
-				id
-			FROM
-				hospital
-			WHERE
-				name = '서울대병원'
-		) AS snu_hospital ON covid.hospital_id = snu_hospital.id
+            SELECT
+                id
+            FROM
+                hospital
+            WHERE
+                name = '서울대병원'
+        ) AS snu_hospital ON covid.hospital_id = snu_hospital.id
         JOIN (
-			SELECT
-				id
-			FROM
-				member 
-			WHERE
-				age BETWEEN 20 AND 29
+            SELECT
+                id
+            FROM
+                member 
+            WHERE
+                age BETWEEN 20 AND 29
         ) AS twenties_member ON covid.member_id = twenties_member.id
         JOIN (
-			SELECT
-				id
-			FROM
-				programmer
-			WHERE
-				country = 'India'
-		) AS indian_programmer ON covid.programmer_id = indian_programmer.id
+            SELECT
+                id
+            FROM
+                programmer
+            WHERE
+                country = 'India'
+        ) AS indian_programmer ON covid.programmer_id = indian_programmer.id
 GROUP BY
     covid.stay
 ;
@@ -405,26 +405,26 @@ ORDER BY
 ```sql
 SELECT
     exercise AS 'exercise amount',
-	COUNT(*) AS 'count'
+    COUNT(*) AS 'count'
 FROM
     programmer
         JOIN covid ON programmer.id = covid.programmer_id
         JOIN (
-			SELECT
-				id 
-			FROM 
-				member 
-			WHERE 
-				age BETWEEN 30 AND 39
-		) AS thirties_member ON programmer.member_id = thirties_member.id
+            SELECT
+                id 
+            FROM 
+                member 
+            WHERE 
+                age BETWEEN 30 AND 39
+        ) AS thirties_member ON programmer.member_id = thirties_member.id
         JOIN (
-			SELECT
-				id 
-			FROM 
-				hospital
-			WHERE
-				name = '서울대병원'
-		) AS snu_hospital ON covid.hospital_id = snu_hospital.id
+            SELECT
+                id 
+            FROM 
+                hospital
+            WHERE
+                name = '서울대병원'
+        ) AS snu_hospital ON covid.hospital_id = snu_hospital.id
 GROUP BY
     programmer.exercise
 ORDER BY

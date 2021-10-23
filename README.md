@@ -182,19 +182,20 @@ ADD INDEX `I_hobby__student` (`hobby` ASC, `student` ASC),
 ADD INDEX `I_yearscoding` (`years_coding` ASC);
 
 # 쿼리
-select p.id, h.name
-from (select id
+select p.id as programmer_id, c.id as covid_id, h.name as hospital_name, p.hobby, p.student,  p.dev_type, p.years_coding
+from (select id, hobby, dev_type, years_coding, student
 	from programmer
-    	where (hobby = 'Yes' and student = 'Yes') or years_coding = '0-2 years') as p
+    	where (hobby = 'Yes' and student like 'Yes%') or years_coding = '0-2 years') as p
 left join covid c
 on c.programmer_id = p.id
 left join hospital h
 on h.id = c.hospital_id;
 ```
 
-![subway-b-3](https://user-images.githubusercontent.com/66905013/137607508-d9eebfcf-8d0f-4521-84e5-7ed85cfdcaa1.PNG)
+![쿼리 수정](https://user-images.githubusercontent.com/66905013/138535431-b644f27b-7c73-4230-b272-c704d9435396.png)
 
-![subway-b-3-explain](https://user-images.githubusercontent.com/66905013/137607511-c0a8ed7a-1854-4630-b9fe-f91613adef4d.png)
+![b-3explain](https://user-images.githubusercontent.com/66905013/138535519-feb3e16d-5481-49a6-b41c-67df78f44637.png)
+
 
 ## B-4
 

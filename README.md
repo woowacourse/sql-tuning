@@ -308,7 +308,6 @@ group by programmer.exercise;
 
 ```sql
 create index i_covid on covid (hospital_id, programmer_id);
-drop index i_covid on covid;
 
 ALTER TABLE programmer 
 CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,

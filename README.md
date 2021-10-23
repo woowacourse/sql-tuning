@@ -191,7 +191,46 @@ Duraion: `0.533s`
 
 
     - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
-    
+### 1차 시도 
+![image](https://user-images.githubusercontent.com/47850258/138567424-1f8c6c1e-fcc8-4212-bc63-4cd605f12a03.png)
+(사진을 깜빡했는데... programmer table을 Full scan table 하고있음)
+
+
+### 2차 시도 
+> programmer 테이블의 country 컬럼 인덱스 추가함 
+
+![image](https://user-images.githubusercontent.com/47850258/138567555-5358dc14-2cbf-498a-ac2e-79a4791b2d67.png)
+
+![image](https://user-images.githubusercontent.com/47850258/138567569-6f869220-a76c-4c9a-87aa-b5e47de9d9fe.png)
+
+Duration: `0.969s` 
+
+일단 궤도권 진입!!! 
+
+### 3차 시도 
+
+> member table에 `age` 인덱스 컬럼 추가! 
+
+Duration: `0.779s`
+
+![image](https://user-images.githubusercontent.com/47850258/138567621-3995e165-ed97-41f2-9fff-720a494b8f36.png)
+
+
+![image](https://user-images.githubusercontent.com/47850258/138567637-fd6c5e9a-6e06-463d-bcbe-9f477d82081c.png)
+
+
+Explain 실행 결과 member table은 `Unique Key Lookup`으로 변경 됌! 
+![image](https://user-images.githubusercontent.com/47850258/138567665-99c37286-79ee-4d34-8059-ec98e54c7415.png)
+
+
+### 4차 시도 
+
+기존에는 covid index를 (programmer_id, member_id, hospital_id)로 한번에 걸었으나, 이번에 각자 따로따로 걸어보았음.
+효과가 매우 좋았다 👍
+
+Duration: `0.140s` 
+
+![image](https://user-images.githubusercontent.com/47850258/138567802-5c65b800-e1e6-4f65-aef1-e4e8fb3ccf99.png)
 
 
     - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)

@@ -70,7 +70,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+    - [x] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
 
 ### 작성한 쿼리 (programmer 테이블에 hobby를 index 컬럼으로 추가함)
@@ -89,9 +89,66 @@ FROM subway.programmer;
 
 Duraion: **0.094s**
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    - [x] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+    
+### 1차 시도 
+![image](https://user-images.githubusercontent.com/47850258/138562697-2d67d51f-af33-4779-8299-51fb11c3b45c.png)
+
+사실 조회하는 두 개의 테이블 모두 `Full Scan Table`을 함에도 불구하고 거뜬하게 조건을 만족... (학습의 목적이 없는 것 같아서 조금 더 개선해기로 함) 
+
+### 2차 시도 
+
+```
+#조회하는 두 테이블의 총 Row 갯수 
+Covid : 318325
+Hospital:  32
+```
+
+> Hospital은 Full Table Scan해도 무방, Covid의 성능개선이 시급!
+현재 Covid 테이블은 index column이 없다! 
+일단 id 컬럼부터 Index를 걸어봤다. 
+
+![image](https://user-images.githubusercontent.com/47850258/138562841-f12ffd61-a13e-4959-890b-02347e9a772f.png)
+
+> 하지만 효과는 미약했다!
+
+### 3차 시도 
+
+Covid의 Where 절의 조건으로 걸리는 programmer_id를 index column으로 지정했다! 
+
+![image](https://user-images.githubusercontent.com/47850258/138562927-bd4611c5-7082-4a1a-ba04-561564f804d5.png)
+음... 전혀 효과가 없어서 왜그런가 싶어서 EXPLAIN으로 확인했더니 Full table scan 하고있다.. 🤔
+
+![image](https://user-images.githubusercontent.com/47850258/138562953-710ad5fb-7547-4b75-92d5-563a74cf07b9.png)
+
+### 4차 시도
+![image](https://user-images.githubusercontent.com/47850258/138562984-098cbf90-e777-423b-967c-400e2c4d03d3.png)
+
+원래부터 워낙 빠르게 동작하다보니 뭔가 Dynamic한 변화는 없다😢 
+Full Table Scan의 늪에서 벗어났다!!! 
+
+해결방법: 단순히 covid 테이블의 id, programmer_id 에만 index를 걸었는데, hos
+
+
+![image](https://user-images.githubusercontent.com/47850258/138562998-e4799922-f546-43fe-9c5c-252db5b19f42.png)
+
+
+### 4차 시도
+
+쿼리도 서브쿼리를 JOIN 하도록 변경하고 또 (hospital_id, programmer_id)를 인덱스 컬럼으로 지정했습니다! 
+Duration: `0.0046 s`
+큰 차이는 아니지만 미세하게 줄었고, 또한 covid 테이블으 Full scan Table을 피한 것만으로 만족했습니다. 😂
+
+![image](https://user-images.githubusercontent.com/47850258/138563519-e6ebea09-d130-4bfc-9a8e-82a1d22d3ce7.png)
+
+![image](https://user-images.githubusercontent.com/47850258/138563507-cd7bef99-62c6-480f-8d12-3c72bb3a70e4.png)
+
+![image](https://user-images.githubusercontent.com/47850258/138564012-14ce3a91-0ea0-4971-a4a6-0cf02b34fb17.png)
+
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    
+
 
     - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 
@@ -100,8 +157,3 @@ Duraion: **0.094s**
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
-## C. 프로젝트 요구사항
-
-### a. 페이징 쿼리를 적용 
-
-### b. Replication 적용 

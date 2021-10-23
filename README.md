@@ -231,9 +231,6 @@ Explain 실행 결과 member table은 `Unique Key Lookup`으로 변경 됌!
 Duration: `0.140s` 
 
 ![image](https://user-images.githubusercontent.com/47850258/138567802-5c65b800-e1e6-4f65-aef1-e4e8fb3ccf99.png)
-
-
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
     
 ### 5차 시도 
 (다른 변경점은 없음 SQL문 조건이 하나 빠졌다!  20대이기 때문에 `age < 30` 조건을 추가해야 함!) 
@@ -250,7 +247,16 @@ Duration: `0.091s`
 
 ![image](https://user-images.githubusercontent.com/47850258/138568012-20e3d804-4b01-4e4e-a3fe-ebc66f15063c.png)
 
+
+    - [x] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
     
+(바로 앞 요구사항과 거의 동일한 테이블들을 다루기 때문에, 별다른 index 추가 없이 진행하였다!)
+
+### 기존 Table에 지정된 Index Column 
+
+![image](https://user-images.githubusercontent.com/47850258/138568711-63de5a89-7325-4e6d-acc5-a1ff0bd081da.png)
+
+
 ### 1차 시도 
 
 > 작성한 쿼리문
@@ -325,8 +331,4 @@ GROUP BY p.exercise;
 2번이 0.5s 정도 느림! 
 
 
-
-
-<div style="line-height:1em"><br style="clear:both" ></div>
-<div style="line-height:1em"><br style="clear:both" ></div>
 

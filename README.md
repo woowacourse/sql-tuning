@@ -72,6 +72,23 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
     - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
+
+### 작성한 쿼리 (programmer 테이블에 hobby를 index 컬럼으로 추가함)
+```MySQL
+SELECT ROUND((SELECT COUNT(*) 
+	FROM subway.programmer
+	WHERE hobby = 'Yes')/COUNT(*) * 100, 1) AS "YES", 
+    ROUND((SELECT COUNT(*) 
+	FROM subway.programmer
+	WHERE hobby = 'No')/COUNT(*) * 100, 1) AS "NO"
+FROM subway.programmer;
+```
+
+### 조회 결과 
+![image](https://user-images.githubusercontent.com/47850258/138560306-ef9dfb72-a5f7-4787-92b6-3b696a8ba2b6.png)
+
+Duraion: **0.094s**
+
     - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)

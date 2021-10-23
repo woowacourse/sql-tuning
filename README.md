@@ -190,7 +190,7 @@ Duraion: `0.533s`
 ![image](https://user-images.githubusercontent.com/47850258/138566736-4ce3fbf3-d936-4b55-8f49-5601e5841120.png)
 
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 ### 1차 시도 
 ![image](https://user-images.githubusercontent.com/47850258/138567424-1f8c6c1e-fcc8-4212-bc63-4cd605f12a03.png)
 (사진을 깜빡했는데... programmer table을 Full scan table 하고있음)
@@ -234,6 +234,98 @@ Duration: `0.140s`
 
 
     - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+    
+### 5차 시도 
+(다른 변경점은 없음 SQL문 조건이 하나 빠졌다!  20대이기 때문에 `age < 30` 조건을 추가해야 함!) 
+```MySQL
+SELECT c.stay, COUNT(*)
+FROM (SELECT * FROM subway.covid c) c
+JOIN (SELECT * FROM subway.programmer p WHERE p.country = 'India') ip ON ip.id = c.programmer_id
+JOIN (SELECT * FROM subway.hospital h WHERE h.name = '서울대병원') h ON h.id = c.hospital_id
+JOIN (SELECT * FROM subway.member m WHERE m.age >= 20 AND m.age < 30) m ON m.id = c.member_id
+GROUP BY c.stay
+```
+
+Duration: `0.091s` 
+
+![image](https://user-images.githubusercontent.com/47850258/138568012-20e3d804-4b01-4e4e-a3fe-ebc66f15063c.png)
+
+    
+### 1차 시도 
+
+> 작성한 쿼리문
+
+```MySQL
+SELECT p.exercise, COUNT(*)
+FROM (SELECT * FROM subway.covid c) c
+JOIN (SELECT * FROM subway.programmer p) p ON p.id = c.programmer_id 
+JOIN (SELECT * FROM subway.hospital h WHERE h.name = "서울대병원") h 
+JOIN (SELECT * FROM subway.member m WHERE m.age >= 30 AND m.age < 40) m ON m.id = c.member_id
+GROUP BY p.exercise;
+```
+
+### 실행 결과 
+
+![image](https://user-images.githubusercontent.com/47850258/138568189-f5c95097-999a-4d7b-868d-ba40a6a8b438.png)
+
+Duration: `1.084s` (다시 실행해보니 더 낮게 나옴!, But 아직 요구사항 만족 X) 
+
+### 2차 시도 
+(지금보니 위의 쿼리는 잘못됌... hospital 조인문 보면 조건절인 ON 절이 없음) 
+
+Driving Table을 가장 작은 테이블인 `hospital`로 변경 밑 빠진 조건절 채워넣고 실행 
+
+```MySql
+SELECT p.exercise, COUNT(*)
+FROM (SELECT * FROM subway.hospital h WHERE h.name = "서울대병원") h 
+JOIN (SELECT * FROM subway.covid c) c ON c.hospital_id = h.id
+JOIN (SELECT * FROM subway.programmer p) p ON p.id = c.programmer_id 
+JOIN (SELECT * FROM subway.member m WHERE m.age >= 30 AND m.age < 40) m ON m.id = c.member_id
+GROUP BY p.exercise;
+```
+
+### 실행 결과 
+
+![image](https://user-images.githubusercontent.com/47850258/138568459-95340121-5404-43ed-a414-0c3ec402ec74.png)
+
+### Expain 실행결과
+
+![image](https://user-images.githubusercontent.com/47850258/138568473-7cfd2d9b-9eca-4c48-9b56-cee9cd222895.png)
+
+> 괜찮은 것 같기두....? 
+
+> 여기서 의문인건... 같은 쿼리를 조건 변경없이 그대로 여러번 실행해보니까 Duration이 `0.044s` 까지도 나온다...뭐지...? 🤔
+
+![image](https://user-images.githubusercontent.com/47850258/138568508-feff6f50-98c4-48a2-8c8b-e0e91a309fb4.png)
+
+
+### 그 외 학습차원의 시도 
+
+
+1번 
+```MySQL
+SELECT STRAIGHT_JOIN p.exercise, COUNT(*)
+FROM (SELECT * FROM subway.hospital h WHERE h.name = "서울대병원") h 
+JOIN (SELECT * FROM subway.covid c) c ON c.hospital_id = h.id
+JOIN (SELECT * FROM subway.member m WHERE m.age >= 30 AND m.age < 40) m ON m.id = c.member_id
+JOIN (SELECT * FROM subway.programmer p) p ON p.id = c.programmer_id 
+GROUP BY p.exercise;
+```
+
+2번
+```MySQL
+SELECT STRAIGHT_JOIN p.exercise, COUNT(*)
+FROM (SELECT * FROM subway.hospital h WHERE h.name = "서울대병원") h 
+JOIN (SELECT * FROM subway.covid c) c ON c.hospital_id = h.id
+JOIN (SELECT * FROM subway.programmer p) p ON p.id = c.programmer_id 
+JOIN (SELECT * FROM subway.member m WHERE m.age >= 30 AND m.age < 40) m ON m.id = c.member_id
+GROUP BY p.exercise;
+```
+위 두 쿼리는 Duration이 조금 차이가 난다. 
+2번이 0.5s 정도 느림! 
+
+
+
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

@@ -105,7 +105,7 @@ ADD INDEX `I_hobby` (`hobby` ASC);
 ;
 
 # 쿼리
-select hobby, round(count(*)/(select count(*) from programmer) * 100, 1) as percentage
+select hobby, concat(round(count(*)/(select count(*) from programmer) * 100, 1), '%') as percentage
 from programmer
 group by hobby
 order by hobby desc;

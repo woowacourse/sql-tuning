@@ -147,10 +147,52 @@ Duration: `0.0046 s`
 
 
     - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
-    
+
+### 1차 시도 (순수 쿼리) 
+![image](https://user-images.githubusercontent.com/47850258/138566043-7d4d4d6f-ae08-4104-aefa-cb8127dc41e7.png)
+
+> Explain 
+![image](https://user-images.githubusercontent.com/47850258/138566057-83b3ea2a-7db7-4cfe-bc2f-e72009ec538f.png)
+
+```
+Covid : 318325
+Programmer: 98855
+Hospital: 32
+```
+
+> Programmer 테이블을 개선해야할 것 같음! 
+
+### 2차 시도 
+
+Duration: 0.646s 
+
+![image](https://user-images.githubusercontent.com/47850258/138566674-961b05e6-563b-4d9f-9979-6f4910de869e.png)
+
+> Programmer index 설정
+
+![image](https://user-images.githubusercontent.com/47850258/138566683-60e0bd34-280d-40a2-b1d5-43d7c5ca573c.png)
+
+> Covid index 설정
+
+![image](https://user-images.githubusercontent.com/47850258/138566692-bc4aba03-c492-4018-87ba-70fe7c66d820.png)
+
+일단 이 결과로 만족하나... 몇몇 테스트를 더 진행해봅니다!! 
+
+### 3차 시도 
+
+> Programmer index 설정 변경 (index 순서 변경)
+![image](https://user-images.githubusercontent.com/47850258/138566728-f33b36f8-fc46-4148-ab79-43e0eb27bab3.png)
+
+줄긴 줄었다!  
+
+Duraion: `0.533s`  
+
+![image](https://user-images.githubusercontent.com/47850258/138566736-4ce3fbf3-d936-4b55-8f49-5601e5841120.png)
 
 
     - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+    
+
 
     - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 

@@ -50,8 +50,9 @@ Duration: **0.374 ms**
 `사원 출입 기록`이 660,000개나 있기 때문에 이 테이블에 index를 적절히 걸어주면 성능 개선을 할 수 있을 것 같다고 추측! 
 
 ![image](https://user-images.githubusercontent.com/47850258/138559096-e5b965b3-e1e8-4eb7-9a91-95e3a6188674.png)
-Where 조건절에서 사용하고 
+Where 조건절에서 사용하고있는 `사원번호`를 index로 추가하고 조회
 
+조회 결과: *0.0024s*
 
 
 ## B. 인덱스 설계

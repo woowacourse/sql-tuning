@@ -110,6 +110,9 @@ from programmer
 group by hobby
 order by hobby desc;
 ```
+
+![image](https://user-images.githubusercontent.com/66905013/138534862-90ad91b4-ba3b-4a22-99fd-288b8465f6b9.png)
+
 ![subway-b-1](https://user-images.githubusercontent.com/66905013/137607325-3112a670-e499-4ab8-a75e-38a4b052376b.PNG)
 
 ![subway-b-1-explain](https://user-images.githubusercontent.com/66905013/137607327-254bc71f-b75b-4ba8-9497-860f594a409f.png)

@@ -25,8 +25,16 @@ FROM (
 JOIN 사원출입기록 ON 연봉TOP5.사원번호 = 사원출입기록.사원번호
 WHERE 사원출입기록.입출입구분 = 'O'
 ORDER BY 연봉TOP5.연봉 DESC
-
 ```
+
+![image](https://user-images.githubusercontent.com/18106839/138591142-0cd57220-1b81-4920-bff2-bba0f9622dff.png)
+
+- 실행계획은 달라진게 없었다.
+
+![image](https://user-images.githubusercontent.com/18106839/138591197-40d8e6cb-91eb-46c3-814b-76fed23925da.png)
+
+![image](https://user-images.githubusercontent.com/18106839/138591218-22549689-0915-4f58-a385-d71a30790722.png)
+
 
 ### 실행계획
 
@@ -310,4 +318,30 @@ CREATE INDEX `idx_covid_hospitalId` ON subway.covid (hospital_id);
 - Idx_covid_programmerId_hospitalId -> covid.programmer_id, covid.hospital_Id
 - Idx_covid_hospitalId -> covid.hospital_Id
 - member 테이블 id primary key
+
+### EXCERCISE에 인덱스 걸어보기
+
+- Idx_programmer_country -> programmer.id, programmer.country 컬럼
+- Idx_programmer_excercise -> programmer.id, programmer.excercise 컬럼 (추가)
+- Idx_programmer_country -> programmer.id, programmer.country 컬럼
+- Idx_covid_programmerId_hospitalId -> covid.programmer_id, covid.hospital_Id
+- Idx_covid_hospitalId -> covid.hospital_Id
+- member 테이블 id primary key
+
+![image](https://user-images.githubusercontent.com/18106839/138591599-acc59dcf-9023-46ea-bfab-0c570634785c.png)
+
+![image](https://user-images.githubusercontent.com/18106839/138591619-c09a12d7-b5e2-4ab2-8dfd-a4bdd139e242.png)
+
+- idx_programmer_id_country가 쓰인다.
+
+- idx_programmer_id_country를 지우고 테스트
+
+![image](https://user-images.githubusercontent.com/18106839/138591685-c5610463-dcb4-4db3-bd4d-5557f6f88b9b.png)
+
+- 별 차이는 없지만 더 안정적으로 나오는 듯..?
+![image](https://user-images.githubusercontent.com/18106839/138591705-e5bab8d6-609a-4b31-b203-9bbcc333e862.png)
+
+
+
+
 

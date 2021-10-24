@@ -84,6 +84,17 @@ GROUP BY 연봉TOP5.사원번호, 연봉TOP5.연봉, 연봉TOP5.직급명, 사�
 ORDER BY 연봉TOP5.연봉 DESC
 
 ```
+### 실행계획 및 시간
+
+![image](https://user-images.githubusercontent.com/18106839/138592027-7bb93b37-54ca-48de-903c-808ec377eb82.png)
+
+
+![image](https://user-images.githubusercontent.com/18106839/138592015-b8f104a8-f5da-4f2d-b309-bb9c09bfcfb6.png)
+
+
+![image](https://user-images.githubusercontent.com/18106839/138592007-914d0bc0-3ee0-469e-a148-f5dc54e2f914.png)
+
+
 
 # B. 인덱스 설계
 

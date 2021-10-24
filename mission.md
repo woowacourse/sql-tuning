@@ -55,6 +55,27 @@ ORDER BY 연봉TOP5.연봉 DESC
 ![image](https://user-images.githubusercontent.com/18106839/137380407-741357c3-7400-4238-b0a0-8d7f78533e38.png)
 
 
+### 지역별 최근 입출입시간을 조회하도록 변경
+
+```
+SELECT 연봉TOP5.사원번호, 연봉TOP5.이름, 연봉TOP5.연봉, 연봉TOP5.직급명, 사원출입기록.지역, 사원출입기록.입출입구분, MAX(사원출입기록.입출입시간) 
+FROM (
+	SELECT 부서관리자.사원번호, 사원.이름, 급여.연봉, 직급.직급명
+    FROM 부서관리자
+    JOIN 사원 ON 부서관리자.사원번호 = 사원.사원번호
+    JOIN 직급 ON 부서관리자.사원번호 = 직급.사원번호
+    JOIN 부서 ON 부서관리자.부서번호 = 부서.부서번호
+    JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
+    WHERE 부서관리자.종료일자 = '9999-01-01' AND 직급.종료일자 =  '9999-01-01' AND 급여.종료일자 = '9999-01-01' AND 부서.비고 = 'active'
+    ORDER BY 급여.연봉 desc
+    LIMIT 5
+    ) AS 연봉TOP5
+JOIN 사원출입기록 ON 연봉TOP5.사원번호 = 사원출입기록.사원번호
+WHERE 사원출입기록.입출입구분 = 'O'
+GROUP BY 연봉TOP5.사원번호, 연봉TOP5.연봉, 연봉TOP5.직급명, 사원출입기록.지역
+ORDER BY 연봉TOP5.연봉 DESC
+
+```
 
 # B. 인덱스 설계
 

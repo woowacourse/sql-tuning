@@ -125,6 +125,8 @@ CREATE INDEX `idx_programmer_hobby` ON subway.programmer(hobby);
 - Index Full Scan은 수직적 탐색없이 인덱스의 리프블록을 처음부터 끝까지 수평적으로 탐색하는 방식.
 - Index Full Scan은 대개 데이터 검색을 위한 최적의 인덱스가 없을 때 차선으로 선택된다.
   - hobby의 경우 카드널리티가 2(YES or NO)이다.
+  - 인덱스를 걸 때는 최대한 많은 데이터가 걸러져야 full scan을 피할 수 있다.
+  - 그러므로 카드널리티가 높은 (중복도가 낮은) 컬럼 일 수록 인덱스에 걸기 적합하다.
 - hobby 또한 좋은 인덱스라고 할 수 없는데 Table Full Scan보다 성능이 좋아졌다.
 
 ---

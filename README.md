@@ -127,7 +127,7 @@ Covid의 Where 절의 조건으로 걸리는 programmer_id를 index column으로
 원래부터 워낙 빠르게 동작하다보니 뭔가 Dynamic한 변화는 없다😢 
 Full Table Scan의 늪에서 벗어났다!!! 
 
-해결방법: 단순히 covid 테이블의 id, programmer_id 에만 index를 걸었는데, hos
+해결방법: 단순히 covid 테이블의 id, programmer_id 에만 index를 걸었는데....
 
 
 ![image](https://user-images.githubusercontent.com/47850258/138562998-e4799922-f546-43fe-9c5c-252db5b19f42.png)
@@ -146,7 +146,7 @@ Duration: `0.0046 s`
 ![image](https://user-images.githubusercontent.com/47850258/138564012-14ce3a91-0ea0-4971-a4a6-0cf02b34fb17.png)
 
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+    - [x] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 
 ### 1차 시도 (순수 쿼리) 
 ![image](https://user-images.githubusercontent.com/47850258/138566043-7d4d4d6f-ae08-4104-aefa-cb8127dc41e7.png)
@@ -176,7 +176,6 @@ Duration: 0.646s
 
 ![image](https://user-images.githubusercontent.com/47850258/138566692-bc4aba03-c492-4018-87ba-70fe7c66d820.png)
 
-일단 이 결과로 만족하나... 몇몇 테스트를 더 진행해봅니다!! 
 
 ### 3차 시도 
 
@@ -188,6 +187,34 @@ Duration: 0.646s
 Duraion: `0.533s`  
 
 ![image](https://user-images.githubusercontent.com/47850258/138566736-4ce3fbf3-d936-4b55-8f49-5601e5841120.png)
+
+### 4차 시도 
+
+100ms 이하로 떨어질 생각을 안해서 다른 분들의 쿼리를 조금 참고했습니다. 
+조건절에 `like`를 사용하는 것을 볼 수 있었는데 
+
+```MySQL
+SELECT covid.id, h.name, p.hobby, p.dev_type, p.years_coding
+FROM (SELECT * FROM subway.programmer WHERE 
+	(student = "YES" AND hobby like "YES%") OR years_coding = "0-2 years") AS p
+JOIN (SELECT id, hospital_id, programmer_id FROM subway.covid WHERE member_id > 0) AS covid ON p.id = covid.programmer_id
+JOIN subway.hospital h ON covid.hospital_id = h.id
+ORDER BY p.id;
+```
+
+실행해보니 Duration이 `0.056s`로 요구사항을 만족하는 결과가 나옴!! 
+
+### Explain 결과
+
+> Before 
+
+![image](https://user-images.githubusercontent.com/47850258/138583726-a2fddb68-5a25-4d04-818c-d6f3bb5daf79.png)
+
+
+> After
+
+![image](https://user-images.githubusercontent.com/47850258/138583700-372567cd-5332-4bf4-90c8-029488881bcd.png)
+
 
 
     - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)

@@ -27,7 +27,7 @@ WHERE UPPER(부서.비고) = 'ACTIVE';
 EXPLAIN
 SELECT *
 FROM 부서
-WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active';
+WHERE UPPER(부서.비고) = 'ACTIVE';
 ```
 
 ```sql
@@ -93,7 +93,7 @@ FROM (
 	FROM 부서관리자
 	JOIN (SELECT *
 		FROM 부서
-		WHERE 부서.비고 = 'ACTIVE' OR 부서.비고 = 'aCTIVE' OR 부서.비고 = 'active'
+		WHERE UPPER(부서.비고) = 'ACTIVE';
 	) as 활동부서
 	ON 활동부서.부서번호 = 부서관리자.부서번호
 
@@ -114,7 +114,7 @@ ON tb.사원번호 = 직급.사원번호
 
 JOIN 사원출입기록
 ON tb.사원번호 = 사원출입기록.사원번호
-WHERE 직급.종료일자 > '2021-10-17'
+WHERE 직급.종료일자 > now()
 AND 사원출입기록.입출입구분 = 'O'
 
 ORDER BY tb.연봉 DESC;

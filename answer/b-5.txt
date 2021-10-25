@@ -1,0 +1,6 @@
+exercise	count(member.id)
+NA	219
+1 - 2 times per week	171
+I don't typically exercise	223
+Daily or almost every day	91
+3 - 4 times per week	113

@@ -19,6 +19,34 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 
+
+```mysql
+select 사원.사원번호, 사원.이름, 부서관리자_급여.연봉, 직급.직급명, 사원출입기록.입출입시간, 사원출입기록.지역, 사원출입기록.입출입구분
+from (select 부서관리자.사원번호, 급여.연봉
+		from 부서관리자
+			JOIN 급여 ON 부서관리자.사원번호 = 급여.사원번호
+		where 부서관리자.부서번호 
+			 in (select 부서번호 from 부서 where LOWER(비고) = 'active') 
+			 and 부서관리자.종료일자 > NOW()
+			 and 급여.종료일자 > NOW()
+		order by 급여.연봉 DESC 
+		LIMIT 5) 부서관리자_급여 
+	JOIN 사원
+		ON 부서관리자_급여.사원번호 = 사원.사원번호
+	JOIN 직급
+		ON 부서관리자_급여.사원번호 = 직급.사원번호
+	JOIN 사원출입기록
+		ON 부서관리자_급여.사원번호 = 사원출입기록.사원번호
+where
+	직급.종료일자 > NOW() and
+    사원출입기록.입출입구분 = 'O'
+order by
+	부서관리자_급여.연봉 DESC, 
+    사원출입기록.지역;
+```
+
+
+
 ## B. 인덱스 설계
 
 ### * 실습환경 세팅

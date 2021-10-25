@@ -77,7 +77,7 @@ select
 
 ![image](https://user-images.githubusercontent.com/34594339/137607204-93892400-d82d-4c0f-9040-1f6e543f45c1.png)
 
-👉 duration : `0.0141 sec` (win)
+👉 duration : `0.141 sec` (win)
 
 <br>
 

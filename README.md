@@ -253,7 +253,8 @@ ON h.id = c.hospital_id
 
 WHERE h.name = '서울대병원'
 AND m.age between 30 and 39
-GROUP BY p.exercise;
+GROUP BY p.exercise
+ORDER BY NULL;
 ```
 
 ![image](https://user-images.githubusercontent.com/41244373/137640265-65bd3540-b746-496f-830d-9c7f907bc7d0.png)

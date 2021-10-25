@@ -15,40 +15,24 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 (사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
 
 ```sql
-SELECT emp.사원번호, emp.이름, pay.연봉, lev.직급명, ent.지역, ent.입출입구분, ent.입출입시간
-FROM 사원 emp
-
-JOIN (
-SELECT 직급.사원번호, 직급.직급명
-FROM 직급
-WHERE 종료일자 >= '9999-01-01' AND 직급명 = 'Manager'
-) AS lev ON emp.사원번호 = lev.사원번호
-
-JOIN (
-	SELECT 사원번호, 연봉
-	FROM 급여
-	WHERE 종료일자 >= '9999-01-01'
-	ORDER BY 연봉 DESC
-) AS pay ON pay.사원번호 = emp.사원번호
-
+SELECT result.사원번호, result.이름, result.연봉, result.직급명, ent.지역, ent.입출입구분, ent.입출입시간
+FROM (
+	SELECT 사원.사원번호, 사원.이름, 급여.연봉, 직급.직급명
+    FROM 부서
+    JOIN 부서관리자 ON 부서관리자.부서번호 = 부서.부서번호 AND 부서.비고 = 'active'
+    JOIN 사원 ON 사원.사원번호 = 부서관리자.사원번호
+    JOIN 직급 ON 직급.사원번호 = 사원.사원번호 AND 직급.직급명 = 'Manager' AND 직급.종료일자 = '9999-01-01'
+    JOIN 급여 ON 사원.사원번호 = 급여.사원번호 AND 급여.종료일자 = '9999-01-01'
+    limit 0, 5
+) AS result
 JOIN (
 	SELECT 사원번호, 지역, 입출입구분, 입출입시간
 	FROM 사원출입기록
     WHERE 입출입구분 = 'O'
 	ORDER BY 입출입시간 DESC
-) AS ent ON ent.사원번호 = emp.사원번호
+) AS ent ON ent.사원번호 = result.사원번호
 
-WHERE emp.사원번호 IN (
-	SELECT man.사원번호
-    FROM 부서관리자 man
-    WHERE man.부서번호 IN (
-		SELECT par.부서번호
-        FROM 부서 par
-        WHERE par.비고 = 'active'
-	)
-)
-
-ORDER BY pay.연봉 DESC
+ORDER BY result.연봉 DESC
 ```
 ![1](https://user-images.githubusercontent.com/49058669/137623272-0eceee15-f0ac-4d9b-a62c-773dcf81f0f5.png)
 )
@@ -56,6 +40,9 @@ ORDER BY pay.연봉 DESC
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>
 
+## 튜닝
+- 사원출입기록.사원번호 인덱스 추가
+	- CREATE INDEX idx_사원출입기록_사원번호 ON tuning.사원출입기록 (사원번호);
 
 ## B. 인덱스 설계
 
@@ -115,10 +102,10 @@ ORDER BY NULL;
 
 ```sql
 SELECT C.id AS "프로그래머 ID", H.name AS "병원"
-FROM (SELECT id, member_id FROM programmer) AS P
-JOIN (SELECT id, programmer_id, hospital_id FROM covid) AS C
+FROM programmer AS P
+JOIN covid AS C
 ON P.id = C.programmer_id
-JOIN (SELECT id, name FROM hospital) AS H
+JOIN hospital AS H
 ON H.id = C.hospital_id
 ORDER BY NULL;
 ```
@@ -152,14 +139,14 @@ ON C.hospital_id = H.id;
 
 ```sql
 SELECT C.id AS "프로그래머 ID", H.name AS "병원", P.hobby AS "취미", P.dev_type AS "개발 종류", P.years_coding AS "년차"
-FROM (SELECT id FROM member) AS M
-JOIN (SELECT id, member_id, hobby, dev_type, years_coding FROM programmer WHERE (hobby = true AND student = true) OR (years_coding = '0-2 years')) AS P
+FROM member AS M
+JOIN (SELECT id, member_id, hobby, dev_type, years_coding FROM programmer WHERE (hobby = lower('Yes') AND student = lower('Yes')) OR (years_coding = '0-2 years')) AS P
 ON M.id = P.member_id
-JOIN (SELECT id, programmer_id, hospital_id FROM covid) AS C
+JOIN covid AS C
 ON P.id = C.programmer_id
-JOIN (SELECT id, name FROM hospital) AS H
+JOIN hospital AS H
 ON C.hospital_id = H.id
-ORDER BY NULL;
+ORDER BY null;
 ```
 
 - 튜닝
@@ -177,7 +164,7 @@ ORDER BY NULL;
 ```sql
 SELECT stay AS "병원에 머문 기간", COUNT(C.id) AS "인원수 집계"
 FROM (SELECT id FROM member WHERE age BETWEEN 20 AND 29) AS M
-JOIN (SELECT id, member_id, programmer_id, stay FROM covid) AS C
+JOIN (SELECT id, member_id, programmer_id, hospital_id, stay FROM covid) AS C
 ON C.member_id = M.id
 JOIN (SELECT id FROM programmer WHERE country = 'india') AS P
 ON C.programmer_id = P.id
@@ -227,6 +214,8 @@ ORDER BY NULL;
 - `hospital` index type 변경 및 index 설정 : text → VARCHAR(255)
 - `hospital` id (PK, NN, UQ), name (UQ) 설정
 - `covid` hospital_id, member_id index 설정
+- `programmer` id index 설정
+- `member` age index 설정
 - 쿼리 마지막에 `ORDER BY NULL` 추가
 
 <div style="line-height:1em"><br style="clear:both" ></div>

@@ -11,11 +11,11 @@ select e.사원번호, f.이름, f.연봉, f.직급명, e.지역, e.입출입시
 		inner join 직급 as j on m.사원번호 = j.사원번호    
 		inner join 급여 as p on p.사원번호 = m.사원번호
 		inner join 사원 as w on w.사원번호 = m.사원번호
-			where t.비고 = 'active' and j.직급명 = 'manager' and date_format(p.종료일자, '%Y-%m-%d') = '9999-01-01' and date_format(m.종료일자, '%Y-%m-%d') = '9999-01-01'
+			where t.비고 = 'active' and j.직급명 = 'manager' and p.종료일자 > NOW() and m.종료일자 > NOW()
 				order by 연봉 desc limit 5) as f 
 	on e.사원번호 = f.사원번호
 		where e.입출입구분 = 'O'	
-			order by f.연봉 desc, e.입출입시간
+			order by f.연봉 desc, e.입출입시간;
 ```
 + 실행 조건
   + (사원출입기록.사원번호) 인덱스 추가
@@ -48,7 +48,8 @@ select (select count(*) from programmer where hobby = 'yes')/count(*) * 100 as y
 + 쿼리
 ```
 SELECT c.programmer_id, h.name FROM subway.covid as c
-    inner join subway.hospital as h on c.hospital_id = h.id;
+    inner join subway.hospital as h on c.hospital_id = h.id
+    inner join subway.programmer as p on c.programmer_id = p.id;
 ```
 + 실행 조건
   + (covid.hospital_id) 인덱스

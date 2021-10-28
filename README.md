@@ -16,21 +16,15 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 
 
 ```sql
-select a.사원번호, a.이름, a.연봉, a.직급명, b.입출입시간, b.지역, b.입출입구분  from 
-(select p.사원번호, q.이름, q.직급명, max(p.연봉) 연봉 from 급여 p, 
-(select f.사원번호, f.이름, g.직급명 from (select s.사원번호, s.이름 from 사원 s, 
-(select bm.사원번호 from 부서 b, 부서관리자 bm 
-    where b.비고 = 'active' and b.부서번호 = bm.부서번호 and bm.종료일자 ='9999-01-01') t 
-where s.사원번호 = t.사원번호) f, 
-(select 사원번호, 직급명 from 직급 where 종료일자 = '9999-01-01') g 
-where g.사원번호 = f.사원번호) q 
-where p.사원번호 = q.사원번호 
-group by p.사원번호, q.직급명 
-order by 연봉 desc 
-limit 0,5) a, 
-(select * from 사원출입기록 
-where 입출입구분 = 'o') b 
-where a.사원번호 = b.사원번호 order by a.연봉 desc;
+select 사원정보.사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간 from
+    (select 사원.사원번호, 사원.이름, 급여.연봉, 직급.직급명 from 사원
+       join 부서사원_매핑 on 부서사원_매핑.사원번호 = 사원.사원번호
+       join 부서 on 부서.비고 = 'active' and 부서.부서번호 = 부서사원_매핑.부서번호
+       join 부서관리자 on 부서관리자.종료일자 = '9999-01-01' and 부서관리자.사원번호 = 사원.사원번호
+       join 직급 on 직급.종료일자 = '9999-01-01' and 직급.사원번호 = 사원.사원번호
+       join 급여 on 급여.종료일자 = '9999-01-01' and 급여.사원번호 = 사원.사원번호
+     order by 급여.연봉 desc limit 0, 5) 사원정보
+    join 사원출입기록 on 사원출입기록.입출입구분 = 'o' and 사원출입기록.사원번호 = 사원정보.사원번호;
 ```
 
 ![image](https://user-images.githubusercontent.com/63634505/136778907-857abed0-6532-49df-9bc6-0d0abfec4d37.png)
@@ -64,7 +58,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 
 ### 2.1 [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 ```sql
-select hobby, count(hobby) / (select count(*) from programmer) 비율 from programmer group by hobby;
+select hobby, count(hobby) / (select count(*) from programmer) * 100 비율 from programmer group by hobby;
 ```    
 ![image](https://user-images.githubusercontent.com/63634505/136952942-64d2727f-f6c1-47ec-a61f-6f3e3bf22b69.png)
 
@@ -80,7 +74,7 @@ create index prgrammer_idx on covid(programmer_id, hospital_id);
 ```
 ```sql
 select c.programmer_id 프로그래머_아이디, h.name 병원이름 from hospital h 
-join covid c on h.id = c.hospital_id order by c.programmer_id desc;
+join covid c on h.id = c.hospital_id;
 
 ```
 ![image](https://user-images.githubusercontent.com/63634505/136956636-0d6f141d-d738-42f8-b211-4c8501c4a5c5.png)
@@ -96,11 +90,11 @@ create index hobby_years on programmer(hobby, years_coding);
 ```
 
 ```sql
-select a.id, b.name, a.hobby, a.dev_type, a.years_coding from 
-    (select p.id, p.hobby, p.dev_type, p.years_coding from programmer p 
-    where hobby = 'yes' or years_coding = '0-2 years' order by id) a 
-join (select c.id, h.name from covid c, hospital h where c.hospital_id = h.id) b 
-on a.id = b.id;
+select a.id, b.name, a.hobby, a.dev_type, a.years_coding from
+    (select p.id, p.hobby, p.dev_type, p.years_coding from programmer p
+     where (hobby = 'yes' and dev_type like '%student') or years_coding = '0-2 years' order by id) a
+        join (select c.id, h.name from covid c, hospital h where c.hospital_id = h.id) b
+             on a.id = b.id;
 ```
 
 ![image](https://user-images.githubusercontent.com/63634505/136962838-4d8808dd-58ea-43eb-b660-d97f52673d60.png)

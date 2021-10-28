@@ -18,17 +18,16 @@
 ```sql
 SELECT a.사원번호, a.이름, a.연봉, a.직급명, MAX(r.입출입시간) 입출입시간, r.지역, r.입출입구분
 FROM (
-	SELECT t.사원번호, e.이름, s.연봉, j.직급명 
-    FROM (SELECT m.사원번호, m.종료일자 
-			FROM 부서관리자 m 
-				JOIN 부서 d ON m.부서번호 = d.부서번호 
-			WHERE 종료일자 >= now() AND 비고 = 'active') t
-		JOIN 급여 s ON t.사원번호 = s.사원번호
-		JOIN 사원 e ON t.사원번호 = e.사원번호
-		JOIN 직급 j ON t.사원번호 = j.사원번호
-	WHERE t.종료일자 = s.종료일자 AND t.종료일자 = j.종료일자
-	ORDER BY 연봉 DESC
-	LIMIT 5) a
+       SELECT m.사원번호, e.이름, s.연봉, j.직급명
+       FROM 부서관리자 m
+       JOIN 부서 d ON m.부서번호 = d.부서번호
+       JOIN 급여 s ON m.사원번호 = s.사원번호
+       JOIN 사원 e ON m.사원번호 = e.사원번호
+       JOIN 직급 j ON m.사원번호 = j.사원번호
+       WHERE m.종료일자 >= now() AND d.비고 = 'active'
+         AND m.종료일자 = s.종료일자 AND m.종료일자 = j.종료일자
+       ORDER BY s.연봉 DESC
+         LIMIT 5) a
 JOIN 사원출입기록 r ON a.사원번호 = r.사원번호
 WHERE 입출입구분 = 'O'
 group by 사원번호, 연봉, 직급명, 지역
@@ -157,11 +156,10 @@ CREATE INDEX 'idx_covid_hospital_id' ON 'subway'.'covid' (hospital_id);
 SELECT c.id, c.member_id, h.name, p.hobby, p.dev_type, p.years_coding FROM hospital h
 JOIN covid c
 ON h.id = c.hospital_id
-JOIN (SELECT member_id, hobby, dev_type, years_coding FROM programmer 
-	WHERE hobby = 'Yes' 
-	AND (student != 'No' OR years_coding = '0-2 years')
-    ORDER BY member_id) p
-ON c.member_id = p.member_id;
+JOIN programmer p
+ON c.member_id = p.member_id
+WHERE p.hobby = 'Yes'
+AND (p.student != 'No' OR p.years_coding = '0-2 years');
 ```
 
 - 결과
@@ -180,9 +178,9 @@ CREATE INDEX 'idx_covid_member_id' ON 'subway'.'covid' (member_id);
 CREATE INDEX 'idx_programmer_member_id' ON 'subway'.'programmer' (member_id);
 ```
 
-![image](https://user-images.githubusercontent.com/62014888/137683347-3103a817-e146-482a-91e2-190eec703220.png)
+![image](https://user-images.githubusercontent.com/62014888/139208003-f5569cfd-ecc2-432f-991b-03ad986af427.png)
 
-![image](https://user-images.githubusercontent.com/62014888/137683470-904c54fa-f2be-4de9-ae14-19a6bf5cc913.png)
+![image](https://user-images.githubusercontent.com/62014888/139208165-78ccb2e1-9e7a-4683-bf55-b9e7c901c8a2.png)
 
 
 - [x] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)

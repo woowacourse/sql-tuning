@@ -181,7 +181,7 @@ order by null;
 ```
 
 #### - 개선 전
-![시간](five_before_time.png) <br>
+![시간](five/five_before_time.png) <br>
 ![계획](five/five_before_explain.png) <br>
 ![계획테이블](five/five_before_explain_table.png) <br>
 

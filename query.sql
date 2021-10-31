@@ -46,7 +46,7 @@ ALTER TABLE covid ADD FOREIGN KEY(hospital_id) REFERENCES hospital(id);
 
 SELECT covid.id, hospital.name
   FROM covid
-    JOIN hospital ON covid.hospital_id = hospital.id;
+    JOIN hospital ON covid.hospital_id = hospital.id
 WHERE covid.programmer_id IS NOT NULL;
 -- 0.0025 sec
 

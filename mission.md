@@ -40,7 +40,7 @@ __시간 측정__
 __인덱스 설정__
 
 ```sql
-CREATE INDEX idx_employee ON 부서관리자(사원번호)
+create index IDX_사원번호 on 사원출입기록(사원번호)
 ```
 
 __시간 측정__
@@ -123,6 +123,13 @@ from programmer
     inner join hospital on covid.hospital_id = hospital.id
 where (programmer.student <> "No" and hobby = "Yes")
 OR (programmer.years_coding = "0-2 years")
+```
+
+__인덱스 설정__
+
+```sql
+CREATE INDEX idx_covid_programmer ON covid(programmer_id);
+CREATE INDEX idx_covid_hospital ON covid(hospital_id);
 ```
 
 __결과 테이블__

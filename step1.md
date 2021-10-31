@@ -12,7 +12,7 @@ and 직급.종료일자 >= now()
 and 급여.종료일자 >= now() 
 order by 급여.연봉 desc limit 5) 사원정보
 	join 사원출입기록 on 사원정보.사원번호 = 사원출입기록.사원번호
-where 입출입구분 = "O"
+where 입출입구분 = '0'
 order by 연봉 desc
 ```
 # 2
@@ -33,7 +33,7 @@ select programmer.id, hospital.name from programmer
 select programmer.id, hospital.name from hospital 
 	JOIN covid on covid.hospital_id = hospital.id
 	JOIN programmer on programmer.id = covid.programmer_id
-where (student like 'yes%' and hobby = 'yes') and (years_coding = '0-2 years' and hobby = 'yes')
+where (student like 'yes%' and hobby = 'yes') or (years_coding = '0-2 years' and hobby = 'yes')
 ```
 # 5
 ```
@@ -41,7 +41,7 @@ select stay as 기간, count(*) from covid
 	JOIN hospital on covid.hospital_id = hospital.id
     JOIN programmer on covid.programmer_id = programmer.id
     JOIN member on programmer.member_id = member.id
-where hospital.name = '서울아산병원'
+where hospital.name = '서울대병원'
 	and member.age >= 20
     and member.age < 30
     and programmer.country = 'India'

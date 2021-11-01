@@ -41,7 +41,8 @@ ORDER BY 상위연봉사원.연봉 DESC, 사원출입기록.입출입시간 DESC
 **인덱스 추가**
 
 ```sql
-CREATE INDEX I_사원번호 ON 사원출입기록(사원번호);
+create index `IDX_사원번호_입출입구분` ON tuning.사원출입기록 (사원번호, 입출입구분);
+
 ```
 
 - 조인 컬럼인 사원출입기록 테이블의 사원번호에 인덱스 생성
@@ -57,8 +58,12 @@ CREATE INDEX I_사원번호 ON 사원출입기록(사원번호);
 ![image](https://user-images.githubusercontent.com/43840561/137600159-ba0b19d5-3988-40be-afeb-bf88c3b5f9d2.png)
 
 **실행 계획** 
-
+**(사원번호)**
 ![image](https://user-images.githubusercontent.com/43840561/137600163-d8623b80-1415-47f0-8110-4715f41a922a.png)
+
+**(사원번호, 입출입구분)**
+![image](https://user-images.githubusercontent.com/43840561/139713135-e2dec952-0d6c-4980-b262-cd7b87c59150.png)
+
 
 ## B. 인덱스 설계
 

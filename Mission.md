@@ -219,7 +219,7 @@ FROM covid as C
 INNER JOIN hospital H ON C.hospital_id = H.id
 INNER JOIN programmer P ON C.programmer_id = P.id 
 INNER JOIN member M ON C.member_id = M.id 
-WHERE H.name = '서울대병원'  AND P.country = 'india' AND (M.age = 20 AND M.age < 30)
+WHERE H.name = '서울대병원'  AND P.country = 'india' AND (age between 20 and 29)
 group by C.stay;
 ```
 
@@ -241,16 +241,17 @@ ALTER TABLE `subway`.`hospital`
 CHANGE COLUMN `name` `name` VARCHAR(255) NULL DEFAULT NULL ,
 ADD UNIQUE INDEX `name_UNIQUE` (`name` ASC);
 
+ALTER TABLE `subway`.`covid` 
 ADD INDEX `idx_programmer_id_hospital_id_member_id` (`hospital_id` ASC, `programmer_id` ASC, `member_id` ASC);
 ```
 
 **Duration**
-
-![image](https://user-images.githubusercontent.com/43840561/137600309-edb9e694-9dd2-4da4-a94f-5e79de9720c7.png)
+![image](https://user-images.githubusercontent.com/43840561/139710594-c1eb2dd6-efc0-40e5-9113-3b565035eb1f.png)
 
 **실행 계획**
 
-![image](https://user-images.githubusercontent.com/43840561/137600314-1c79feca-1f88-488c-92d6-a46f7cb89e41.png)
+![image](https://user-images.githubusercontent.com/43840561/139709940-002078e4-82ff-4673-b2e7-b007bc1b45d1.png)
+
 ### 5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
 **쿼리**

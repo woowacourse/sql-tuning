@@ -64,6 +64,8 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 ### * 요구사항: 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+0. primary key 설정
+  covid, hospital, programmer의 pk설정이 안되어 있기에, id를 pk로 설정해줌
 
 1. [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 ```sql
@@ -83,13 +85,18 @@ inner join covid as c on p.id=c.programmer_id
 inner join hospital as h on c.hospital_id=h.id;
 ```
 
-- 문제 분석 : 모두 full scan을 진행하고 있음.-> hospital_id와 programmar_id를 covid 테이블 index 생성 시도
-![Screenshot from 2021-10-18 02-08-07](https://user-images.githubusercontent.com/49307266/137637662-690344d5-aae1-4ee7-bc4b-8e0f805ca1eb.png)
-![hospital](https://user-images.githubusercontent.com/49307266/137637675-b8f1219b-32f5-4602-8baf-920c032eb5fe.png)
+- 문제 분석 : covid table full scan을 진행하고 있음 (0.0044sec) -> covid.hospital_id, covid.programmer_id index 조합 도전
+![Screenshot from 2021-11-01 20-46-58](https://user-images.githubusercontent.com/49307266/139666898-e8217126-89db-484e-9866-00f419d5f8fa.png)
 
-- 결과 (기존 0.585sec -> 0.033sec) : hospital_id의 경우 그 cardinarity가 낮아서인지, index를 추가해주더라도 Full Sacn을 진행. Search 성능 향상을 기대하기 힘들다고 판단했기에 covid테이블의 index는 programmer_id만을 추가
-![Screenshot from 2021-10-18 02-19-51](https://user-images.githubusercontent.com/49307266/137638105-5b347565-a025-406a-8b46-3981374b760b.png)
-![Screenshot from 2021-10-18 02-20-18](https://user-images.githubusercontent.com/49307266/137638104-99782c52-36f5-4806-9b9b-1ce0c61c0c72.png)
+- 1. covid.hospital_id, covid.programmer_id 각각 index
+  cardinarity 높은 programmer_id index를 사용하여 진행.
+![Screenshot from 2021-11-01 21-08-29](https://user-images.githubusercontent.com/49307266/139669196-31f626ce-7d7c-46ee-99b3-f720278849e9.png)
+- 2. (covid.hospital_id, covid.programmer_id) index -> hospital부터 조회하도록 수정됨. 하지만 programmer_id cardinarity가 높아서 오히려 비효율적
+![Screenshot from 2021-11-01 21-17-12](https://user-images.githubusercontent.com/49307266/139670112-633fb4eb-9c89-405b-9ed5-43d5eae0aba2.png)
+- 3. (covid.programmer_id, covid.hopspital_id) index -> 가장 빠른 성능을 보임.
+![Screenshot from 2021-11-01 21-13-59](https://user-images.githubusercontent.com/49307266/139669761-8c13eebc-a81b-40f6-9001-afd4c995670a.png)
+
+- 결과 (기존 0.0044sec -> 0.0034sec) : 큰 차이를 만들어 내지는 못함. 당연히 3번의 id만을 이용한 조회가 빠를 것이라 생각했음. 이유를 유추해보면, covid 테이블의 어느 이후에 값들은 모두 null로 들어가 있었기 때문에, 모두 pass 한 것으로 보임!
 
 
 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)

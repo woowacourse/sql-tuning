@@ -154,16 +154,16 @@ group by c.stay;
 ```sql
 SELECT p.exercise, count(*)
 FROM covid as c
-inner join member as m on c.member_id=m.id
+inner join (select id from member where 30 <= age and age < 40) as m on c.member_id=m.id
 inner join programmer as p on c.programmer_id=p.id
-inner join hospital as h on c.hospital_id=h.id
-where 30 <= m.age and m.age < 40 and h.name='서울대병원'
+inner join (select id from hospital where name='서울대병원') as h on c.hospital_id=h.id
 group by p.exercise;
 ```
+![Screenshot from 2021-11-01 22-51-02](https://user-images.githubusercontent.com/49307266/139682374-1dfcc4ec-4838-4e12-9741-39c721e252bb.png)
 
-- 결과 0.09sec
-![Screenshot from 2021-10-18 03-38-04](https://user-images.githubusercontent.com/49307266/137640486-3a82a622-f768-4d06-bf68-82e4546221c0.png)
-
+- 4번과 비슷한 논리대로 hospital (name) index 추가, covid (hospital_id) index 추가
+- 결과 
+![Screenshot from 2021-11-01 22-52-29](https://user-images.githubusercontent.com/49307266/139682572-9660c2d1-27e9-44d7-ae3d-8cef2110a8b4.png)
 
 <div style="line-height:1em"><br style="clear:both" ></div>
 <div style="line-height:1em"><br style="clear:both" ></div>

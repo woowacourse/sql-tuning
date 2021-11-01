@@ -64,8 +64,9 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 <div style="line-height:1em"><br style="clear:both" ></div>
 
 ### * 요구사항: 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
-0. primary key 설정
-  covid, hospital, programmer의 pk설정이 안되어 있기에, id를 pk로 설정해줌
+0. 단계 진행 관련
+  `covid, hospital, programmer의 pk설정이 안되어 있기에, id를 pk로 설정해줌.`
+  `각각의 단계별로 index를 새로 설정하고 진행할 예정!`
 
 1. [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 ```sql
@@ -96,7 +97,7 @@ inner join hospital as h on c.hospital_id=h.id;
 - 3. (covid.programmer_id, covid.hopspital_id) index -> 가장 빠른 성능을 보임.
 ![Screenshot from 2021-11-01 21-13-59](https://user-images.githubusercontent.com/49307266/139669761-8c13eebc-a81b-40f6-9001-afd4c995670a.png)
 
-- 결과 (기존 0.0044sec -> 0.0034sec) : 큰 차이를 만들어 내지는 못함. 당연히 3번의 id만을 이용한 조회가 빠를 것이라 생각했음. 이유를 유추해보면, covid 테이블의 어느 이후에 값들은 모두 null로 들어가 있었기 때문에, 모두 pass 한 것으로 보임!
+- 결과 (기존 0.0044sec -> 0.0034sec) : 큰 차이를 만들어 내지는 못함. 당연히 3번의 id만을 이용한 조회가 빠를 것이라 생각했음. index 적용 전과 비슷한 이유를 유추해보면, covid 테이블의 어느 이후에 값들은 모두 null로 들어가 있었기 때문에, 모두 pass 한 것으로 보임!(covid table은 크지만, programmer_id를 가지고 있는 covid table의 값은 더 적음)
 
 
 3. 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
@@ -106,11 +107,27 @@ SELECT p.id, h.name, p.hobby, p.dev_type, p.years_coding
 FROM programmer as p
 inner join covid as c on p.id=c.programmer_id
 inner join hospital as h on c.hospital_id=h.id
-where p.hobby='yes' or p.years_coding='0-2 years';
+where (p.hobby='yes' and p.student='yes') or p.years_coding='0-2 years';
 ```
 
-- 결과 (0.011sec) : hobby index 보다는 full scan이 효율적인 것으로 보임(카디널리티가 낮기 때문에, count(*)인 경우정도에만 사용될 것으로 생각). 2번에서 cvoid의 programmer_id index만으로 충분한 것으로 보임
-- ![Screenshot from 2021-10-18 02-30-22](https://user-images.githubusercontent.com/49307266/137638324-54997a35-4971-495d-b186-8d8e52f11a25.png)
+```sql
+SELECT p.id, h.name, p.hobby, p.dev_type, p.years_coding
+FROM (select id, hobby, dev_type, years_coding from programmer where hobby='yes' or years_coding='0-2 years') as p
+inner join covid as c on p.id=c.programmer_id
+inner join hospital as h on c.hospital_id=h.id;
+```
+
+위의 2개의 쿼리문을 작성할 수 있을 것 같다. index 없이 실행했을 때는, covid table을 먼저 scan함. (covid.programmer_id, covid.hopspital_id)에 index를 걸었을 때에는 programmer 테이블이 먼저 실행되는데, 실행 계획을 1번의 경우에도 먼저 filter가 되는 것으로 보인다.
+
+![Screenshot from 2021-11-01 22-17-24](https://user-images.githubusercontent.com/49307266/139677764-7d3df0ae-bdff-4122-8de3-0ea83ac7048f.png)
+
+- 결과
+
+- 1. index 없이 실행 -> 상당히 빠른 성능을 보임
+![Screenshot from 2021-11-01 22-15-45](https://user-images.githubusercontent.com/49307266/139677487-2937f86d-8911-4b86-a028-131bee0f9aff.png)
+- 2. (covid.programmer_id, covid.hopspital_id) index -> 1번과 비슷하게 진행. 이 경우 programmer의 filter를 먼저 실행하게 됨.(programmer table full scan하고 where 조건에 해당하는 처리를 일일이 진행. index가 없는 경우는 c,h,p의 join 후 해당하는 부분만 where 조건 진행. (2번에서 처럼 covid의 대부분이 null값으로 되어있기 때문에 그 scan 시간이 줄어든 것으로 유추)
+![Screenshot from 2021-11-01 22-15-19](https://user-images.githubusercontent.com/49307266/139677519-51787288-07ef-456a-ad62-bd7a71748e9a.png)
+- 추가: hobby와 years_coding에 index를 추가해봤으나, and로 연결되지 않은 경우 full scan 진행
 
 
 4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)

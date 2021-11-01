@@ -133,27 +133,21 @@ inner join hospital as h on c.hospital_id=h.id;
 4. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
 ```sql
 SELECT c.stay, count(*)
-FROM programmer as p
-inner join member as m on p.member_id=m.id
+FROM (select id, member_id from programmer where country='India') as p
+inner join (select id from member where 20 <= age and age < 30) as m on p.member_id=m.id
 inner join covid as c on p.id=c.programmer_id
-inner join hospital as h on c.hospital_id=h.id
-where p.country='India' and 20 <= m.age and m.age < 30 and h.name='서울대병원'
-group by stay;
+inner join (select id from hospital where name='서울대병원') as h on c.hospital_id=h.id
+group by c.stay;
 ```
-- 문제 분석(0.274sec)
-![Screenshot from 2021-10-18 02-44-06](https://user-images.githubusercontent.com/49307266/137638718-c2d96b05-ffb8-4b55-a598-a5c370dd19bd.png)
+- 문제 분석(0.172sec) -> hospital, covid full scan
+![Screenshot from 2021-11-01 22-20-56](https://user-images.githubusercontent.com/49307266/139678219-8d89a248-2dca-47b2-a23e-7d69635daef3.png)
 
-- programmer -> country index 추가
-![Screenshot from 2021-10-18 02-43-20](https://user-images.githubusercontent.com/49307266/137638730-f8799497-8ba1-4710-a91c-8b5d32cbaa64.png)
+- id만을 사용하는 경우 index만을 통해 조회 가능. (member, hospital) 충분한 카디널리티이기에 이득을 볼 것으로 예상.
+- memer에 age, programmer에 (member_id, country)의 index를 추가하더라도 기존의 방식으로 조회하는 것을 확인 -> hopsital을 최적화 진행.
+- hospital (name) index 추가, covid (hospital_id) index 추가
 
-- member -> age index 추가
-![Screenshot from 2021-10-18 02-45-57](https://user-images.githubusercontent.com/49307266/137638797-f2e0bce6-0382-47eb-8048-830f9800eca5.png)
-
-- hospital -> name index 추가 
-![Screenshot from 2021-10-18 03-24-35](https://user-images.githubusercontent.com/49307266/137640085-c7d705b1-747f-4f35-a26d-1615b46f8880.png)
-
-- programmer -> id index 추가, 당연히 있을 줄 알았는데, 존재 하지 않았어서 추가. 100ms 부근으로 쿼리 결과 나옴
-![Screenshot from 2021-10-18 03-37-32](https://user-images.githubusercontent.com/49307266/137640469-d698c7c1-945a-453e-a1e3-8ca395d10af8.png)
+- 결과(0.07sec 정도로 단축)
+![Screenshot from 2021-11-01 22-45-51](https://user-images.githubusercontent.com/49307266/139681755-14c57615-a088-4bb7-a5fb-87f1b6ade127.png)
 
 
 5. 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)

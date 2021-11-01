@@ -41,7 +41,7 @@ ORDER BY 상위연봉사원.연봉 DESC, 사원출입기록.입출입시간 DESC
 **인덱스 추가**
 
 ```sql
-create index `IDX_사원번호_입출입구분` ON tuning.사원출입기록 (사원번호, 입출입구분);
+CREATE INDEX `IDX_사원번호_입출입구분` ON tuning.사원출입기록 (사원번호, 입출입구분);
 
 ```
 

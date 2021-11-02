@@ -14,7 +14,7 @@ where 입출입구분 = 'O' order by 연봉 desc;
 
 ### 두 번째 문제
 ```
-select hobby, count(hobby) / (select count(1) from programmer) from programmer group by hobby
+select hobby, round(count(hobby) / (select count(1) from programmer) * 100, 1) as ratio from programmer group by hobby order by ratio desc;
 ```
 
 ### 세 번째 문제
@@ -42,7 +42,7 @@ group by stay;
 ### 여섯 번째 문제
 ```
 select stay as 기간, count(1) from covid 
-inner join (select id from hospital where name = '서울아산병원') as B on covid.hospital_id = B.id
+inner join (select id from hospital where name = '서울대병원') as B on covid.hospital_id = B.id
 inner join (select * from programmer inner join (select id as mem_id from member where age >= 20 and age < 30) MEM on MEM.mem_id = programmer.member_id where country = 'India') as A on covid.programmer_id = A.id
 group by stay;
 ```

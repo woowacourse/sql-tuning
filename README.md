@@ -27,30 +27,6 @@ $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
 
   ```sql
   select 
-      사원.사원번호, 
-      사원.이름, 
-      급여.연봉,
-      직급.직급명
-  from 
-      사원
-  join 
-      급여 on 사원.사원번호 = 급여.사원번호
-  join 
-      부서관리자 on 사원.사원번호 = 부서관리자.사원번호
-  join
-      직급 on 사원.사원번호 = 직급.사원번호
-  join 
-      부서 on 부서관리자.부서번호 = 부서.부서번호
-  where 
-      급여.종료일자 = '9999-01-01' and 
-      부서관리자.종료일자 = '9999-01-01' and 
-      직급.직급명 = 'Manager' and
-      부서.비고 = 'active'
-  order by 
-      급여.연봉 desc
-  limit 5;
-  
-  select 
       사원_top5.사원번호, 
       사원_top5.이름, 
       사원_top5.연봉, 

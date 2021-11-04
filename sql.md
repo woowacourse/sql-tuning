@@ -33,10 +33,10 @@ inner join (select id from programmer where (years_coding = '0-2 years' and hobb
 
 ### 다섯 번째 문제
 ```
-select stay as 기간, count(1) from covid 
+select covid.stay as 기간, count(1) from covid 
 inner join (select id from hospital where name = '서울아산병원') as B on covid.hospital_id = B.id
 inner join (select * from programmer inner join (select id as mem_id from member where age >= 20 and age < 30) MEM on MEM.mem_id = programmer.member_id where country = 'India') as A on covid.programmer_id = A.id
-group by stay;
+group by covid.stay;
 ```
 
 ### 여섯 번째 문제

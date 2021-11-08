@@ -54,8 +54,7 @@ CREATE INDEX `idx_programmer_hobby` ON `programmer` (hobby);
 ```sql
 SELECT covid.programmer_id, hospital.name
 FROM hospital
-    LEFT JOIN covid ON hospital.id = covid.hospital_id
-    LEFT JOIN programmer ON covid.programmer_id = programmer.id;
+    LEFT JOIN covid ON hospital.id = covid.hospital_id;
 ```
 - Duration/Fetch Time: 0.448 sec / 0.242 sec
 

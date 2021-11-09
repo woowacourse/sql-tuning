@@ -6,7 +6,7 @@
 
 ```sh
 $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
-```a
+```
 - [workbench](https://www.mysql.com/products/workbench/)를 설치한 후 localhost:23306 (ID : user, PW : password) 로 접속합니다.
 
 <div style="line-height:1em"><br style="clear:both" ></div>

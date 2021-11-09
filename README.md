@@ -195,25 +195,26 @@ Duration은 커넥션 타임아웃이 떴음
 
 - **인덱스 적용**
 
-**programmer PK 추가**
-```sql
-ALTER TABLE programmer 
-CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
-ADD PRIMARY KEY (id);
+- **programmer PK 추가**
+- duration 0.012sec
 
-// 0.012sec
-```
 <img width="1288" alt="스크린샷 2021-11-09 오후 3 45 55" src="https://user-images.githubusercontent.com/56679885/140875398-6bceda1c-ead6-40fd-9d13-a99fc6ac446d.png">
 
-**hospital PK 추가**
-```sql
-ALTER TABLE hospital
-CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
-ADD PRIMARY KEY (id);
+- **hospital PK 추가**
+- duration 변함없음 - 실행계획은 PK를 사용하도록 변경되었지만 hospital의 row수가 적어서 효과는 없었음
 
-// 0.012sec - 실행계획은 PK를 사용하도록 변경되었지만 hospital의 카디널리티가 적어서 효과는 없었음
-```
 <img width="1095" alt="스크린샷 2021-11-09 오후 3 48 33" src="https://user-images.githubusercontent.com/56679885/140875717-cd54a4b8-7ed2-43bc-b401-08b95b95770b.png">
+
+
+- **이 상태에서 covid.hospital_id 인덱스를 걸면 조인 순서가 바껴서 hospital을 먼저 탐색한다.**
+- duration 변함없음
+
+<img width="1066" alt="스크린샷 2021-11-09 오후 4 01 11" src="https://user-images.githubusercontent.com/56679885/140877153-7c33fb94-eadb-4df0-a64e-e4762f8ba469.png">
+
+- **하지만 covid.programmer_id 인덱스를 추가로 걸어주면 이젠 programmer를 먼저 탐색한다.**
+- duration 변함없음
+
+<img width="1088" alt="스크린샷 2021-11-09 오후 4 04 35" src="https://user-images.githubusercontent.com/56679885/140877542-f310ec69-1a38-4af1-a07b-0343f47f9346.png">
 
 
 #### B-3 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
@@ -294,7 +295,7 @@ create index i_member on member (id, age);
 
 #### B-5 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
-- **조회 쿼리**
+**조회 쿼리**
 
 ```sql
 select programmer.exercise, count(programmer.id)
@@ -304,37 +305,26 @@ join member on member.id = covid.member_id
 join programmer on programmer.id = covid.programmer_id
 where hospital.name = '서울대병원'
 and member.age between 30 and 39
-group by programmer.exercise;
+group by programmer.exercise
+order by null;
 ```
 
-- **인덱스 적용 전**
+**인덱스 적용 전**
+- duration 15-16sec
 
-<img width="166" alt="스크린샷 2021-10-21 오후 6 22 14" src="https://user-images.githubusercontent.com/56679885/138249402-d23d3238-5aa0-4292-bccc-4328cf4db3b9.png">
+<img width="1304" alt="스크린샷 2021-11-09 오후 4 21 56" src="https://user-images.githubusercontent.com/56679885/140879662-412ebbfb-0671-4008-acd8-ce9cb24963ea.png">
 
-<img width="622" alt="스크린샷 2021-10-21 오후 6 23 19" src="https://user-images.githubusercontent.com/56679885/138249615-671ca36f-45b8-456e-82b9-cfdf7bff8da8.png">
+**인덱스 적용**
+- **programmer PK 추가**
+- duration 0.29sec
 
-<img width="1255" alt="스크린샷 2021-10-21 오후 6 22 57" src="https://user-images.githubusercontent.com/56679885/138249535-4a93066a-b5dc-49d8-a9c7-c3f6a34fed9a.png">
+<img width="1281" alt="스크린샷 2021-11-09 오후 5 20 37" src="https://user-images.githubusercontent.com/56679885/140887746-dc056995-319b-493b-aeec-8cb791d5f3b4.png">
 
-- **인덱스 생성**
+- **covid.hospital_id 인덱스 추가**
+- duration 0.05sec
+- covid 테이블에 using join buffer 제거됨
 
-```sql
-create index i_covid on covid (hospital_id, programmer_id);
-
-ALTER TABLE programmer 
-CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
-ADD PRIMARY KEY (id);
-```
-
-- **인덱스 적용 후**
-
-<img width="163" alt="스크린샷 2021-10-21 오후 7 59 32" src="https://user-images.githubusercontent.com/56679885/138264475-d38cde04-bdf8-44e9-b720-57a5946fbb54.png">
-
-<img width="678" alt="스크린샷 2021-10-21 오후 8 02 20" src="https://user-images.githubusercontent.com/56679885/138264844-38ed3274-e59b-417b-aa75-7d97bf53c9ab.png">
-
-<img width="1248" alt="스크린샷 2021-10-21 오후 8 02 34" src="https://user-images.githubusercontent.com/56679885/138264872-ce8f3120-f5bd-44ac-93db-11214acd0988.png">
-
-<div style="line-height:1em"><br style="clear:both" ></div>
-<div style="line-height:1em"><br style="clear:both" ></div>
+<img width="1197" alt="스크린샷 2021-11-09 오후 5 27 32" src="https://user-images.githubusercontent.com/56679885/140888866-afba9cc7-98e7-434d-a3c7-f54cd2909eac.png">
 
 ## C. 프로젝트 요구사항
 

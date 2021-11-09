@@ -193,17 +193,28 @@ Duration은 커넥션 타임아웃이 떴음
 <img width="453" alt="스크린샷 2021-10-18 오후 5 23 44" src="https://user-images.githubusercontent.com/56679885/137697769-bf7e3bbd-48ba-435b-a0a5-6e83f4ed86be.png">
 <img width="1050" alt="스크린샷 2021-10-18 오후 5 23 53" src="https://user-images.githubusercontent.com/56679885/137697773-f539427a-a7b5-46fb-8b42-4b050b544891.png">
 
-- **인덱스 생성**
+- **인덱스 적용**
 
+**programmer PK 추가**
 ```sql
-create index I_programmer_id on covid (programmer_id);
+ALTER TABLE programmer 
+CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
+ADD PRIMARY KEY (id);
+
+// 0.012sec
 ```
+<img width="1288" alt="스크린샷 2021-11-09 오후 3 45 55" src="https://user-images.githubusercontent.com/56679885/140875398-6bceda1c-ead6-40fd-9d13-a99fc6ac446d.png">
 
-- **인덱스 적용 후**
+**hospital PK 추가**
+```sql
+ALTER TABLE hospital
+CHANGE COLUMN id id BIGINT(20) NOT NULL AUTO_INCREMENT ,
+ADD PRIMARY KEY (id);
 
-<img width="128" alt="b2-인덱스 Duration" src="https://user-images.githubusercontent.com/56679885/137862614-190df63b-967b-401d-ade2-d831f67b75bd.png">
-<img width="496" alt="스크린샷 2021-10-19 오후 4 25 20" src="https://user-images.githubusercontent.com/56679885/137862807-8fbdb127-a1aa-482e-a9a9-b4e83968bfa2.png">
-<img width="1045" alt="스크린샷 2021-10-19 오후 4 25 36" src="https://user-images.githubusercontent.com/56679885/137862841-3be0e0c5-c7a9-4397-943c-6e864cea1b3a.png">
+// 0.012sec - 실행계획은 PK를 사용하도록 변경되었지만 hospital의 카디널리티가 적어서 효과는 없었음
+```
+<img width="1095" alt="스크린샷 2021-11-09 오후 3 48 33" src="https://user-images.githubusercontent.com/56679885/140875717-cd54a4b8-7ed2-43bc-b401-08b95b95770b.png">
+
 
 #### B-3 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
 

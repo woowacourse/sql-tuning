@@ -6,7 +6,7 @@
 
 ```sh
 $ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
-```
+```a
 - [workbench](https://www.mysql.com/products/workbench/)를 설치한 후 localhost:23306 (ID : user, PW : password) 로 접속합니다.
 
 <div style="line-height:1em"><br style="clear:both" ></div>
@@ -263,34 +263,32 @@ where
 member.age between 20 and 29
 and programmer.country = 'india'
 and hospital.name = '서울대병원'
-group by covid.stay;
+group by covid.stay
+order by null;
 ```
 
-- **인덱스 적용 전**
+**인덱스 적용 전**
+
+<img width="1309" alt="b4-1" src="https://user-images.githubusercontent.com/56679885/140912307-0098d155-a144-46b7-bacb-5ad0ef6f4038.png">
 
 Duration은 커넥션 타임아웃이 떴음
 
-<img width="625" alt="스크린샷 2021-10-21 오후 6 00 57" src="https://user-images.githubusercontent.com/56679885/138246053-b843ff72-2b9e-4e2a-96bd-bc53b7d11e88.png">
+**인덱스 생성**
 
-<img width="1272" alt="스크린샷 2021-10-21 오후 6 01 12" src="https://user-images.githubusercontent.com/56679885/138246063-3b04c977-c416-45a0-b076-242d59cba8bb.png">
+- **programmer PK 추가**
+- duration 3.5sec
 
-- **인덱스 생성**
+<img width="1299" alt="b4-2" src="https://user-images.githubusercontent.com/56679885/140912331-452499aa-9ba3-4f84-b6e8-a5215a82cb80.png">
 
-```sql
-create index i_covid on covid (programmer_id, hospital_id);
+- **coivd (programmer_id, hospital_id) 인덱스 추가**
+- duration 0.7sec
 
-create index i_programmer on programmer (country, id, member_id);
+<img width="1312" alt="스크린샷 2021-11-09 오후 8 55 54" src="https://user-images.githubusercontent.com/56679885/140919899-a6745bc0-a32c-48f8-82b1-66718e1afe44.png">
 
-create index i_member on member (id, age);
-```
+- **programmer (country, member_id) 인덱스 추가**
+- duration 0.03sec
 
-- **인덱스 적용 후**
-
-<img width="163" alt="스크린샷 2021-10-21 오후 6 08 43" src="https://user-images.githubusercontent.com/56679885/138247264-de1cc099-781c-411a-ae24-c90be4c864df.png">
-
-<img width="713" alt="스크린샷 2021-10-21 오후 6 08 58" src="https://user-images.githubusercontent.com/56679885/138247300-235eedfd-3001-4ba9-a455-bc19071d073a.png">
-
-<img width="1291" alt="스크린샷 2021-10-21 오후 6 09 19" src="https://user-images.githubusercontent.com/56679885/138247347-eb14ebab-2908-4e83-b4d8-9c36f8c93b48.png">
+<img width="1265" alt="스크린샷 2021-11-09 오후 8 57 14" src="https://user-images.githubusercontent.com/56679885/140920076-b3841c92-68ab-4500-b5d9-b63eef493cec.png">
 
 
 #### B-5 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)

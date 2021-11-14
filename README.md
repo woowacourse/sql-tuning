@@ -180,8 +180,7 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 2. 인덱스 적용
 
    ```sql
-   create index i_covid_programmer_hospital on covid (programmer_id, hospital_id);
-   create index i_hospital_id_name on hospital (id, name);
+   create index i_covid_programmer_hospital on covid (programmer_id);
    ```
 
    결과 0.026
@@ -226,11 +225,12 @@ $ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
 1. 쿼리 작성
 
    ```sql
+   
    select c.stay, count(c.id) 
    from covid c
-   inner join (select id, country from programmer where country = 'India') p on p.id = c.id
-   inner join (select id, age from member where age between 20 and 29) m on c.member_id = m.id
    inner join (select id from hospital where name = '서울대병원') h on h.id = c.hospital_id
+   inner join (select id, age from member where age between 20 and 29) m on c.member_id = m.id
+   inner join (select id, country from programmer where country = 'India') p on p.id = c.id
    group by c.stay;
    ```
 

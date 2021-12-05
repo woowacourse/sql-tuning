@@ -1,54 +1,64 @@
 # 🚀 조회 성능 개선하기
 
-## A. 쿼리 연습
+## 쿼리 연습
 
-### * 실습환경 세팅
-
-```sh
-$ docker run -d -p 23306:3306 brainbackdoor/data-tuning:0.0.1
-```
-- [workbench](https://www.mysql.com/products/workbench/)를 설치한 후 localhost:23306 (ID : user, PW : password) 로 접속합니다.
-
-<div style="line-height:1em"><br style="clear:both" ></div>
-
-> 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
+- [ ] 활동중인(Active) 부서의 현재 부서관리자 중 연봉 상위 5위안에 드는 사람들이 최근에 각 지역별로 언제 퇴실했는지 조회해보세요.
 (사원번호, 이름, 연봉, 직급명, 지역, 입출입구분, 입출입시간)
-
-
-<div style="line-height:1em"><br style="clear:both" ></div>
-<div style="line-height:1em"><br style="clear:both" ></div>
-
-
-## B. 인덱스 설계
-
-### * 실습환경 세팅
-
-```sh
-$ docker run -d -p 13306:3306 brainbackdoor/data-subway:0.0.2
-```
-- [workbench](https://www.mysql.com/products/workbench/)를 설치한 후 localhost:13306 (ID : root, PW : masterpw) 로 접속합니다.
-
-<div style="line-height:1em"><br style="clear:both" ></div>
-
-### * 요구사항
-
 - [ ] 주어진 데이터셋을 활용하여 아래 조회 결과를 100ms 이하로 반환
+- [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
+- [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+- [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+- [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+- [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
 
-    - [ ] [Coding as a  Hobby](https://insights.stackoverflow.com/survey/2018#developer-profile-_-coding-as-a-hobby) 와 같은 결과를 반환하세요.
 
-    - [ ] 각 프로그래머별로 해당하는 병원 이름을 반환하세요.  (covid.id, hospital.name)
+### full table scan vs full index scan :: PR 리뷰 중에서..
 
-    - [ ] 프로그래밍이 취미인 학생 혹은 주니어(0-2년)들이 다닌 병원 이름을 반환하고 user.id 기준으로 정렬하세요. (covid.id, hospital.name, user.Hobby, user.DevType, user.YearsCoding)
+Q) 
 
-    - [ ] 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요. (covid.Stay)
+저는 풀스캔 타기 때문에 hobby는 인덱스의 의미가 없지 않을까 생각했는데, 효과가 있더라구요
+where 절에서 그래도 빠르게 찾아오기 때문인가 싶기도 하고.. hobby에 인덱스를 걸어주는 게 적절한것인지 헷갈리더라구요 😱
+코기는 어떻게 생각하시나요?
 
-    - [ ] 서울대병원에 다닌 30대 환자들을 운동 횟수별로 집계하세요. (user.Exercise)
+A)
 
-<div style="line-height:1em"><br style="clear:both" ></div>
-<div style="line-height:1em"><br style="clear:both" ></div>
+1) 제 머릿속에서는
 
-## C. 프로젝트 요구사항
+저 같은 경우는 hobby가 인덱스로 없으면 full table scan, 인덱스가 걸려있으면 full index scan을 타더라고요.
+음 제가 공부한 바로는 
+'이런 인덱스 컬럼 조건에서는 full index scan이 full table scan보다 빠르다.' '근데 인덱스 컬럼 외 조건이 추가된다면 차라리 full table scan이 낫다' 
+라고 이해했었습니다.
 
-### a. 페이징 쿼리를 적용 
 
-### b. Replication 적용 
+2) 우려되는 상황
+
+다른 인덱스 컬럼 외 조건이 추가되는 경우는 예를 들면 hobby에만 인덱스를 걸어뒀는데 아래와 같은 다른 조건의 쿼리가 자주 사용된다면 이는 full table scan보다 성능이 떨어질겁니다. hobby 인덱스에서 제거하거나, (hobby & open_source)에 인덱스를 거는게 훨씬 더 효율적이겠지요.
+
+`SELECT hobby, open_source FROM programmer WHERE hobby = 'yes' AND open_source = 'yes'`
+
+3) 그래서 제 생각은
+
+그래서 이 table을 보통 어떻게 조회하는지가, 프로그램 성향이나 요구사항에 따라 다를 거 같아요.
+
+예를 들면
+
+- hobby만을 조건으로 조회하는 경우가 적고, 다른 조건을 갖는 쿼리와 수가 비슷하다면 hobby 인덱스 제거하고 full table scan 태울겁니다.
+
+- hobby만을 조건으로 조회, 다른 조건들을 갖는 쿼리 종류가 적다면 아예 그 컬럼들을 묶어서 인덱스로 등록할 생각을 해볼 것 같습니다. (ex, hobby & open_source). 근데 이제 조회가 아니라 추가나 삭제의 빈도도 고려해야 할 것 같아요.
+ 
+- hobby만을 조건으로 조회하는 경우가 많고, 다른 조건들을 갖는 쿼리 종류가 여러개라면,`hobby에 인덱스 걸고, 다른 조건들의 쿼리에서 성능 저하를 감안할지` vs `인덱스를 제거하고 모두 full table scan으로 가는게 더 좋을지` 또 고민해봐야할 것 같아요.
+
+이번 스텝에서는 그냥 hobby를 조건으로 조회하는 경우가 많다만 생각하고 이런 쿼리를 들고 왔어요.   
+이게 참 어렵네요. 이래서 개발자들도 비즈니스 모델을 잘 알아야 하는 것 같아요.   
+사용자 패턴이나 프로젝트 전체 요구사항을 알아야, 어떤 조회가 얼마나 더 나올지 조금이라도 더 예측하고 이런 성능 개선 포인트를 알 수 있을테니 ㅎㅎ   
+
+
+### 인덱스 손익 분기점 :: '5. 서울대병원에 다닌 20대 India 환자들을 병원에 머문 기간별로 집계하세요.md' 중에서..
+
+재밌는게 이전의 full table scan을 제거할 수 있었는데 duration은 더 증가함을 보였다.
+인덱스를 태울 때는 10~15% 정도의 분포도를 갖고 있는 데이터를 엑세스 할 때 효율적임을 보여주는 포인트인가 보다.
+
+겉핥기로 공부한 바를 정리해보면 DB의 데이터는 OS의 Disk Block 다발로 이뤄진 Data Block을 저장하는 식이고, 인덱스는 각 Block들의 id를 따로 테이블을 분리해서 저장해두는 방식이라고 이해했다. 그 저장 방식 중에 대표적인게 B-tree 방식인거고. 이 인덱스를 통해 알게 된 Block ID에 해당하는 블록을 엑세스하는 방식인 것이다.
+
+문제는 Full table scan으로 block을 엑세스하면 한번의 엑세스로 block 다발을 가져올 수 있는데 (이 다발의 수 역시 따로 저장되어 있다고 이해했다.), Index을 이용한 탐색의 경우에는 block id를 보고 block을 엑세스한다. 따라서 index를 태워서 효율적이려면 block 다발을 엑세스하는 것보다 여러 엑세스로 단일 블록을 가져올 때 속도가 더 빨라야하느 것이다. 그 정도를 보통 10% ~ 15%로 얘기하는 것 같다. 대량 데이터 접근에도 마찬가지다. 같은 이유로 일반적으로 Full table scan이 유리하다.
+
